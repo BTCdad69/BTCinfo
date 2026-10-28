@@ -20,7 +20,13 @@ header{display:flex;justify-content:space-between;align-items:baseline;margin-bo
 .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 button{background:none;border:1px solid var(--bd);color:var(--mut);border-radius:5px;padding:3px 9px;font:inherit;font-size:12px;margin-left:4px}
 button.on{color:var(--ac);border-color:var(--ac)}
-canvas{width:100%;height:300px;display:block}
+canvas{width:100%;height:300px;display:block;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.sec{margin:14px 0 6px;color:var(--ac);font-size:12px;letter-spacing:.08em}
+.gauge{height:8px;border-radius:4px;background:linear-gradient(90deg,#4aa3ff,#2ecc71,#f1c40f,#ff9f43,#ff5c5c);position:relative;margin-top:10px}
+.gauge i{position:absolute;top:-4px;width:3px;height:16px;background:#fff;border-radius:2px;transform:translateX(-50%)}
+.zn{font-size:11px;margin-top:2px}
+.sub{margin:12px 0 2px;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.tg{opacity:.4}.tg.on{opacity:1;border-color:currentColor}
 .key{font-size:11px;color:var(--mut);margin-top:6px}
 .news a{display:block;color:var(--tx);text-decoration:none;padding:8px 0;border-top:1px solid var(--bd)}
 .news a:first-child{border-top:0}
@@ -45,11 +51,12 @@ canvas{width:100%;height:300px;display:block}
 </div>
 
 <div class="card">
-<div class="bar"><span class="l" id="ctitle">Price vs power law (log scale)</span>
+<div class="bar"><span class="l" id="ctitle">Bitcoin · USD</span>
 <span><button id="b-usd" class="on">USD</button><button id="b-gold">GOLD</button></span></div>
-<div id="usdctl" style="margin:0 0 6px"><button id="b-ma" class="on" style="margin-left:0">MA</button> <button class="rb" data-r="1d">1D</button><button class="rb" data-r="1w">1W</button><button class="rb" data-r="1m">1M</button><button class="rb" data-r="3m">3M</button><button class="rb" data-r="1y">1Y</button><button class="rb" data-r="5y">5Y</button><button class="rb on" data-r="all">ALL</button></div>
+<div style="margin:0 0 6px"><button class="rb" data-r="1d" style="margin-left:0">1D</button><button class="rb" data-r="1w">1W</button><button class="rb" data-r="1m">1M</button><button class="rb" data-r="3m">3M</button><button class="rb" data-r="1y">1Y</button><button class="rb" data-r="5y">5Y</button><button class="rb on" data-r="all">ALL</button></div>
+<div id="usdctl" style="margin:0 0 6px"><button class="tg on" data-k="d50" style="color:#4aa3ff;margin-left:0">50D</button><button class="tg on" data-k="d200" style="color:#b07cff">200D</button><button class="tg on" data-k="w200" style="color:#2ecc71">200W</button><button class="tg on" data-k="pl" style="color:#e6e8ea">Power law</button><button class="tg on" data-k="bd" style="color:#8fa3b5">Bands</button></div>
 <canvas id="ch"></canvas>
-<div class="key" id="key"><span style="color:#f7931a">━</span> price &nbsp;<span style="color:#e6e8ea">╌</span> power-law fit &nbsp;<span style="color:#5b6b7a">┄</span> approx. bands &nbsp;<span style="color:#4aa3ff">━</span> 50D &nbsp;<span style="color:#b07cff">━</span> 200D &nbsp;<span style="color:#2ecc71">━</span> 200W</div>
+<div class="key" id="key"></div>
 </div>
 
 <div class="card" style="margin-top:8px"><div class="l">Next halving</div><div class="v" id="hv">—</div>
@@ -62,9 +69,25 @@ canvas{width:100%;height:300px;display:block}
 <div class="card"><div class="l">Next difficulty adj.</div><div class="v" id="da">—</div></div>
 </div>
 
+<div class="sec">ON-CHAIN · CYCLE READ</div>
+<div class="card">
+<div class="l">Cycle heat</div>
+<div class="v"><span id="ocsc">—</span> · <span id="ochl">loading…</span></div>
+<div class="gauge"><i id="gm" style="left:0"></i></div>
+<div class="key" id="ocph" style="margin-top:10px"></div>
+<div class="key" id="octr"></div>
+</div>
+<div id="ocg"></div>
+<div class="card">
+<div class="bar"><span class="l">Cost basis vs price (log)</span><span><button class="ocr" data-r="1y">1Y</button><button class="ocr on" data-r="4y">4Y</button><button class="ocr" data-r="all">ALL</button></span></div>
+<canvas id="oc" style="height:260px"></canvas>
+<div class="key"><span style="color:#f7931a">━</span> price &nbsp;<span style="color:#e6e8ea">━</span> realized price (all holders) &nbsp;<span style="color:#ff6b9d">━</span> STH cost basis &nbsp;<span style="color:#4aa3ff">━</span> LTH cost basis</div>
+</div>
+<div class="note" id="ocn">Loading on-chain data…</div>
+<div class="note">Data: CoinGecko, mempool.space, blockchain.com, alternative.me, CryptoCompare news, Coin Metrics community data, BGeometrics. Power law = log10(P) = −17.016 + 5.845·log10(days since 2009-01-03), a statistical model, not a prediction. Not financial advice.</div>
+
 <div class="card news" style="margin-top:8px"><div class="l" style="margin-bottom:4px">Latest news</div><div id="news">loading…</div></div>
 
-<div class="note">Data: CoinGecko, mempool.space, blockchain.com, alternative.me, CoinDesk &amp; Bitcoin Magazine RSS. Power law = log10(P) = −17.016 + 5.845·log10(days since 2009-01-03), a statistical model, not a prediction. Not financial advice.</div>
 
 <script>
 const G=Date.UTC(2009,0,3), D=864e5;
@@ -74,7 +97,7 @@ const $=id=>document.getElementById(id);
 const usd=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:n<100?2:0});
 const big=n=>n>=1e12?'$'+(n/1e12).toFixed(2)+'T':'$'+(n/1e9).toFixed(0)+'B';
 const j=async u=>{const r=await fetch(u);if(!r.ok)throw 0;return r.json()};
-let hist=[],range='all',price=null,ma=null,showMA=true,gold=[],mode='usd';
+let hist=[],range='all',price=null,ma=null,mode='usd',histP=null;
 
 async function loadPrice(){
   try{
@@ -90,10 +113,10 @@ async function loadPrice(){
   $('dg').textContent=Math.floor(days(now)).toLocaleString();
   $('sats').textContent=Math.round(1e8/price).toLocaleString();
   $('upd').textContent='updated '+new Date().toLocaleTimeString();
-  draw();
+  draw();renderOC();
 }
 function sma(n){const o=[],w=n*D;let s=0,j=0;for(let i=0;i<hist.length;i++){s+=hist[i][1];while(hist[j][0]<=hist[i][0]-w){s-=hist[j][1];j++}if(hist[i][0]-hist[0][0]>=w*.98)o.push([hist[i][0],s/(i-j+1)])}return o}
-function calcMA(){ma={m50:sma(50),m200:sma(200),w200:sma(1400)}}
+function calcMA(){ma={m50:sma(50),m200:sma(200),w200:sma(1400),p111:sma(111),p350:sma(350)}}
 async function loadHalving(){try{const h=await j('https://mempool.space/api/blocks/tip/height');
  const nxt=Math.ceil((h+1)/210000)*210000,left=nxt-h,ms=left*600000,eta=new Date(Date.now()+ms);
  $('hv').textContent=Math.floor(ms/D)+'d '+Math.floor(ms%D/36e5)+'h · '+left.toLocaleString()+' blocks';
@@ -103,20 +126,6 @@ async function loadPool(){
  try{const m=await j('https://mempool.space/api/mempool');$('mtx').textContent=m.count.toLocaleString();$('msz').textContent=(m.vsize/1e6).toFixed(1)+' vMB'}catch(e){}
  try{const h=await j('https://mempool.space/api/v1/mining/hashrate/3d');$('hr').textContent=Math.round(h.currentHashrate/1e18)+' EH/s'}catch(e){}
  try{const a=await j('https://mempool.space/api/v1/difficulty-adjustment'),c=a.difficultyChange;$('da').textContent=(c>=0?'+':'')+c.toFixed(1)+'% · '+a.remainingBlocks.toLocaleString()+' blk'}catch(e){}}
-async function loadGold(){try{
- const [b,g]=await Promise.all(['bitcoin','pax-gold'].map(id=>j('https://api.coingecko.com/api/v3/coins/'+id+'/market_chart?vs_currency=usd&days=365&interval=daily')));
- const gm=new Map(g.prices.map(p=>[Math.floor(p[0]/D),p[1]])),r=[];
- b.prices.forEach(p=>{const q=gm.get(Math.floor(p[0]/D));if(q)r.push([p[0],p[1]/q])});
- gold=r;if(mode==='gold')drawGold()}catch(e){if(mode==='gold')$('key').textContent='Gold data unavailable (rate limit?). Try again shortly.'}}
-function drawGold(){const c=$('ch'),dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;
- const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,W,H);if(!gold.length){$('key').textContent='Loading gold data…';return}
- const ys=gold.map(p=>p[1]),mn=Math.min(...ys)*.97,mx=Math.max(...ys)*1.03,t0=gold[0][0],t1=gold[gold.length-1][0],L=40,T=6,B=18,R=6,pw=W-L-R,ph=H-T-B;
- const X=t=>L+(t-t0)/(t1-t0)*pw,Y=v=>T+(1-(v-mn)/(mx-mn))*ph;
- x.font='10px monospace';x.fillStyle='#8a94a0';x.strokeStyle='#232a33';x.lineWidth=1;
- for(let i=0;i<=3;i++){const v=mn+(mx-mn)*i/3,y=Y(v);x.beginPath();x.moveTo(L,y);x.lineTo(W-R,y);x.stroke();x.fillText(v.toFixed(0),2,y+3)}
- [t0,(t0+t1)/2].forEach(t=>x.fillText(new Date(t).toLocaleDateString([], {month:'short',year:'2-digit'}),X(t),H-4));
- x.beginPath();x.strokeStyle='#d4af37';x.lineWidth=1.6;gold.forEach((p,i)=>{const px=X(p[0]),py=Y(p[1]);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();
- $('key').innerHTML='<span style="color:#d4af37">━</span> oz of gold per BTC · 1Y daily · now '+ys[ys.length-1].toFixed(1)+' · gold via PAXG proxy'}
 async function loadNet(){loadHalving();loadPool();
   try{$('bh').textContent=(await j('https://mempool.space/api/blocks/tip/height')).toLocaleString()}catch(e){}
   try{const f=await j('https://mempool.space/api/v1/fees/recommended');$('fee').textContent=f.fastestFee+' / '+f.hourFee}catch(e){}
@@ -125,18 +134,18 @@ async function loadNet(){loadHalving();loadPool();
 async function loadHist(){
   try{
     const d=await j('https://api.blockchain.info/charts/market-price?timespan=all&format=json&cors=true&sampled=false');
-    hist=d.values.filter(p=>p.y>0).map(p=>[p.x*1000,p.y]);calcMA();draw();
+    hist=d.values.filter(p=>p.y>0).map(p=>[p.x*1000,p.y]);calcMA();draw();renderOC();ocChart();
   }catch(e){}
 }
 async function loadNews(){
-  const feeds=['https://www.coindesk.com/arc/outboundfeeds/rss/','https://bitcoinmagazine.com/.rss/full/'];
   let items=[];
-  await Promise.all(feeds.map(async u=>{try{
+  try{const d=(await j('https://min-api.cryptocompare.com/data/v2/news/?lang=EN')).Data;
+    items=d.map(i=>({t:i.title,l:i.url,d:new Date(i.published_on*1000),s:(i.source_info&&i.source_info.name)||i.source||'',c:i.categories+' '+i.title}));
+    const bt=items.filter(i=>/BTC|bitcoin/i.test(i.c));if(bt.length>=6)items=bt}catch(e){}
+  if(!items.length)await Promise.all(['https://www.coindesk.com/arc/outboundfeeds/rss/','https://bitcoinmagazine.com/.rss/full/'].map(async u=>{try{
     const d=await j('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(u));
-    const src=d.feed&&d.feed.title?d.feed.title.split(' ')[0]:'';
-    d.items.forEach(i=>items.push({t:i.title,l:i.link,d:new Date(i.pubDate.replace(' ','T')+'Z'),s:src}));
-  }catch(e){}}));
-  items.sort((a,b)=>b.d-a.d);
+    d.items.forEach(i=>items.push({t:i.title,l:i.link,d:new Date(i.pubDate.replace(' ','T')+'Z'),s:(d.feed.title||'').split(' ')[0]}))}catch(e){}}));
+  items.sort((p,q)=>q.d-p.d);
   const box=$('news');box.textContent='';
   if(!items.length){box.textContent='News unavailable right now.';return}
   items.slice(0,12).forEach(i=>{
@@ -146,52 +155,183 @@ async function loadNews(){
     a.appendChild(document.createElement('br'));a.appendChild(s);box.appendChild(a);
   });
 }
-const SHORT={'1d':1,'1w':7,'1m':30,'3m':90},intra={},pend={},errs={};
-const keyShort='<span style="color:#f7931a">━</span> price &nbsp;<span style="color:#4aa3ff">━</span> 50D &nbsp;<span style="color:#b07cff">━</span> 200D &nbsp;<span style="color:#2ecc71">━</span> 200W <span>(MA lines appear only when within the visible price range)</span>';
-async function loadIntra(r){if(pend[r])return;pend[r]=1;
- try{intra[r]=(await j('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days='+SHORT[r])).prices}catch(e){errs[r]=1}
- pend[r]=0;if(mode==='usd'&&range===r)draw()}
-function draw(){if(mode==='gold')return drawGold();
-  const c=$('ch'),dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;
-  c.width=W*dpr;c.height=H*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,W,H);
-  const now=Date.now(),long=range==='all'||range==='5y';let pts,t0,t1;
-  if(SHORT[range]){pts=intra[range];if(!pts){$('key').textContent=errs[range]?'Data unavailable (rate limit?). Try again shortly.':'Loading…';return}t0=now-SHORT[range]*D;t1=now}
-  else{if(!hist.length)return;t0=range==='all'?hist[0][0]:now-(range==='5y'?5:1)*365*D;t1=long?now+2*365*D:now;
-    pts=hist.filter(p=>p[0]>=t0);if(price)pts=pts.concat([[now,price]])}
-  $('key').innerHTML=long?keyUSD:keyShort;
-  const L=44,R=6,T=6,B=18,pw=W-L-R,ph=H-T-B,X=t=>L+(t-t0)/(t1-t0)*pw;
-  const lo=Math.min(...pts.map(p=>p[1])),hi=Math.max(...pts.map(p=>p[1]));
-  let Y,ticks=[],lab;
-  if(long){const a=Math.log10(Math.pow(10,Math.floor(Math.log10(Math.min(lo,pl(t0)*.4))))),b=Math.log10(Math.pow(10,Math.ceil(Math.log10(Math.max(hi,pl(t1)*2.5)))));
-    Y=v=>T+(1-(Math.log10(v)-a)/(b-a))*ph;for(let e=a;e<=b+1e-9;e++)ticks.push(Math.pow(10,e));lab=v=>'$'+(v>=1e3?Math.round(v/1e3)+'k':v)}
-  else{const pad=(hi-lo||1)*.05,mn=lo-pad,mx=hi+pad;Y=v=>T+(1-(v-mn)/(mx-mn))*ph;for(let i=0;i<=4;i++)ticks.push(mn+(mx-mn)*i/4);lab=v=>'$'+(v/1e3).toFixed(1)+'k'}
-  x.font='10px monospace';x.fillStyle='#8a94a0';x.strokeStyle='#232a33';x.lineWidth=1;
-  ticks.forEach(v=>{const y=Y(v);x.beginPath();x.moveTo(L,y);x.lineTo(W-R,y);x.stroke();x.fillText(lab(v),2,y+3)});
-  if(long){const y0=new Date(t0).getFullYear(),step=range==='all'?4:1;
-    for(let y=y0+1;y<=new Date(t1).getFullYear();y+=step){const px=X(Date.UTC(y,0,1));if(px>L)x.fillText(y,px-10,H-4)}}
-  else{const o=range==='1d'?{hour:'numeric',minute:'2-digit'}:{month:'short',day:'numeric'};
-    for(let i=0;i<=3;i++){const t=t0+(t1-t0)*i/3,px=Math.min(Math.max(X(t)-18,L),W-46);x.fillText(new Date(t).toLocaleString([],o),px,H-4)}}
-  x.save();x.beginPath();x.rect(L,T,pw,ph);x.clip();
-  if(long){const line=(f,col,w,dash)=>{x.beginPath();x.setLineDash(dash||[]);x.strokeStyle=col;x.lineWidth=w;let s=false;
-      const st=Math.max(t0,G+D*30),n=120;for(let i=0;i<=n;i++){const t=st+(t1-st)*i/n,px=X(t),py=Y(f(t));s?x.lineTo(px,py):x.moveTo(px,py);s=true}x.stroke();x.setLineDash([])};
-    line(t=>pl(t)*.4,'#5b6b7a',1,[2,3]);line(t=>pl(t)*2.5,'#5b6b7a',1,[2,3]);line(pl,'#e6e8ea',1.2,[6,4])}
-  if(showMA&&ma)[[ma.m50,'#4aa3ff'],[ma.m200,'#b07cff'],[ma.w200,'#2ecc71']].forEach(([a,col])=>{x.beginPath();x.strokeStyle=col;x.lineWidth=1.4;let st=false;a.forEach(p=>{if(p[0]<t0)return;const px=X(p[0]),py=Y(p[1]);st?x.lineTo(px,py):x.moveTo(px,py);st=true});x.stroke()});
-  x.beginPath();x.strokeStyle='#f7931a';x.lineWidth=1.6;
-  pts.forEach((p,i)=>{const px=X(p[0]),py=Y(p[1]);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();
-  x.restore();
-  if(long){x.strokeStyle='#8a94a0';x.setLineDash([2,3]);x.beginPath();x.moveTo(X(now),T);x.lineTo(X(now),T+ph);x.stroke();x.setLineDash([])}
+const SHORT={'1d':1,'1w':7,'1m':30,'3m':90},DAYS={'1d':1,'1w':7,'1m':30,'3m':90,'1y':365,'5y':1825};
+const intra={},pend={},errs={},gd={},gpend={},gerr={},V={usd:null,gold:null},T={d50:1,d200:1,w200:1,pl:1,bd:1};
+const PL=44,PR=6,PT=6,PB=18,HINT='Pinch to zoom · drag to pan · double-tap to reset';
+const CG='https://api.coingecko.com/api/v3/coins/';
+async function loadIntra(r){if(intra[r]||pend[r])return;pend[r]=1;
+ try{intra[r]=(await j(CG+'bitcoin/market_chart?vs_currency=usd&days='+SHORT[r])).prices}catch(e){errs[r]=1}
+ pend[r]=0;draw()}
+async function loadGold(r){if(gd[r]||gpend[r])return;gpend[r]=1;
+ try{
+  const pg=(await j(CG+'pax-gold/market_chart?vs_currency=usd&days='+(r==='all'?'max':DAYS[r]))).prices,now=Date.now();
+  let bt;
+  if(SHORT[r])bt=intra[r]||(intra[r]=(await j(CG+'bitcoin/market_chart?vs_currency=usd&days='+SHORT[r])).prices);
+  else{await histP;if(!hist.length)throw 0;bt=r==='all'?hist:hist.filter(p=>p[0]>=now-DAYS[r]*D)}
+  const out=[];let k=0;
+  for(const p of bt){while(k+1<pg.length&&pg[k+1][0]<=p[0])k++;if(pg[k][0]<=p[0]&&p[0]-pg[k][0]<3*D)out.push([p[0],p[1]/pg[k][1]])}
+  if(out.length<2)throw 0;gd[r]=out;
+ }catch(e){gerr[r]=1}
+ gpend[r]=0;draw()}
+function series(){
+ if(mode==='gold'){const p=gd[range];return p?{pts:p,e0:p[0][0],e1:p[p.length-1][0]}:null}
+ if(SHORT[range]){const p=intra[range];return p?{pts:p,e0:p[0][0],e1:Date.now()}:null}
+ if(!hist.length)return null;
+ return{pts:price?hist.concat([[Date.now(),price]]):hist,e0:hist[0][0],e1:Date.now()+730*D}}
+function defView(s){const n=Date.now();
+ if(mode==='gold')return[range==='all'?s.e0:Math.max(s.e0,s.e1-DAYS[range]*D),s.e1];
+ if(SHORT[range])return[n-SHORT[range]*D,n];
+ if(range==='1y')return[n-365*D,n];
+ return[range==='all'?s.e0:n-1825*D,n+730*D]}
+function draw(){
+ const c=$('ch'),dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;
+ c.width=W*dpr;c.height=H*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,W,H);
+ const key=$('key'),s=series(),um=mode==='usd';
+ if(!s){const e=um?errs[range]:gerr[range];
+  key.textContent=e?(!um&&(range==='5y'||range==='all')?'Gold history beyond 1 year is not available from the free data source.':'Data unavailable (rate limit?). Try the button again shortly.'):'Loading…';return}
+ if(!V[mode])V[mode]=defView(s);
+ const[t0,t1]=V[mode],now=Date.now(),sp=t1-t0,pw=W-PL-PR,ph=H-PT-PB,X=t=>PL+(t-t0)/sp*pw;
+ const vis=s.pts.filter(p=>p[0]>=t0&&p[0]<=t1);if(!vis.length)return;
+ let lo=Math.min(...vis.map(p=>p[1])),hi=Math.max(...vis.map(p=>p[1]));
+ const logY=um?(!SHORT[range]&&sp>2.5*365*D):hi/lo>8;
+ if(um&&logY&&(T.pl||T.bd)){lo=Math.min(lo,pl(Math.max(t0,G+30*D))*(T.bd?.4:1));hi=Math.max(hi,pl(t1)*(T.bd?2.5:1))}
+ let a,b,Y;
+ if(logY){a=Math.log10(lo)-.04;b=Math.log10(hi)+.04;Y=v=>PT+(1-(Math.log10(v)-a)/(b-a))*ph}
+ else{const pd=(hi-lo||hi*.01||1)*.06;a=lo-pd;b=hi+pd;Y=v=>PT+(1-(v-a)/(b-a))*ph}
+ const ticks=[];
+ if(logY){const kept=[];for(const m of[1,2,5,3,1.5,7])for(let e=Math.floor(a)-1;e<=Math.ceil(b);e++){const v=m*Math.pow(10,e),lv=Math.log10(v);if(lv>a&&lv<b&&kept.every(k=>Math.abs(Y(k)-Y(v))>=17))kept.push(v)}ticks.push(...kept)}
+ else{const raw=(b-a)/5,p=Math.pow(10,Math.floor(Math.log10(raw))),st=[1,2,2.5,5,10].map(m=>m*p).find(q=>q>=raw);for(let v=Math.ceil(a/st)*st;v<=b;v+=st)ticks.push(v)}
+ const pr=v=>+v.toPrecision(3),fmt=um?(v=>'$'+(v>=1e6?pr(v/1e6)+'M':v>=1e3?pr(v/1e3)+'k':pr(v))):(v=>''+pr(v));
+ x.font='10px monospace';x.lineWidth=1;
+ ticks.forEach(v=>{const y=Y(v);x.strokeStyle='#232a33';x.beginPath();x.moveTo(PL,y);x.lineTo(W-PR,y);x.stroke();x.fillStyle='#8a94a0';x.fillText(fmt(v),2,y+3)});
+ const o=sp<2*D?{hour:'numeric',minute:'2-digit'}:sp<400*D?{month:'short',day:'numeric'}:sp<4*365*D?{month:'short',year:'2-digit'}:{year:'numeric'};
+ x.fillStyle='#8a94a0';
+ for(let i=0;i<=3;i++){const t=t0+sp*i/3;x.fillText(new Date(t).toLocaleString([],o),Math.min(Math.max(X(t)-18,PL),W-46),H-4)}
+ x.save();x.beginPath();x.rect(PL,PT,pw,ph);x.clip();
+ const win=q=>q.filter(p=>p[0]>=t0-sp*.02&&p[0]<=t1+sp*.02);
+ const ln=(q,col,w)=>{x.beginPath();x.strokeStyle=col;x.lineWidth=w;q.forEach((p,i)=>{const px=X(p[0]),py=Y(p[1]);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke()};
+ const fn=(f,col,w,dash)=>{const st=Math.max(t0,G+30*D);x.beginPath();x.setLineDash(dash);x.strokeStyle=col;x.lineWidth=w;for(let i=0;i<=140;i++){const t=st+(t1-st)*i/140,px=X(t),py=Y(f(t));i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();x.setLineDash([])};
+ if(um){
+  if(T.bd){fn(t=>pl(t)*.4,'#5b6b7a',1,[2,3]);fn(t=>pl(t)*2.5,'#5b6b7a',1,[2,3])}
+  if(T.pl)fn(pl,'#e6e8ea',1.2,[6,4]);
+  if(ma)[['d50','m50','#4aa3ff'],['d200','m200','#b07cff'],['w200','w200','#2ecc71']].forEach(([k,m,col])=>{if(T[k])ln(win(ma[m]),col,1.4)});
+ }
+ ln(win(s.pts),um?'#f7931a':'#d4af37',1.6);
+ x.restore();
+ if(um&&now>t0&&now<t1&&t1-now>2*D){x.strokeStyle='#8a94a0';x.setLineDash([2,3]);x.beginPath();x.moveTo(X(now),PT);x.lineTo(X(now),PT+ph);x.stroke();x.setLineDash([])}
+ key.textContent=HINT+(um?'':' · oz of gold per BTC, now '+s.pts[s.pts.length-1][1].toFixed(1)+' (gold via PAXG)');
 }
+const cv=$('ch'),ptr=new Map();let ld=0,mv=0,lt=0;
+function setV(t0,t1){const s=series();if(!s)return;const mn=SHORT[range]?18e5:3*D,sp=Math.min(Math.max(t1-t0,mn),s.e1-s.e0);t0=Math.min(Math.max(t0,s.e0),s.e1-sp);V[mode]=[t0,t0+sp];draw()}
+function zoom(cx,f){const v=V[mode];if(!v)return;const r=cv.getBoundingClientRect(),fr=Math.min(1,Math.max(0,(cx-r.left-PL)/(r.width-PL-PR))),t=v[0]+fr*(v[1]-v[0]),sp=(v[1]-v[0])*f;setV(t-fr*sp,t-fr*sp+sp)}
+function pan(dx){const v=V[mode];if(!v)return;const r=cv.getBoundingClientRect(),dt=-dx/(r.width-PL-PR)*(v[1]-v[0]);setV(v[0]+dt,v[1]+dt)}
+const dist=()=>{const[p,q]=[...ptr.values()];return Math.hypot(p.x-q.x,p.y-q.y)};
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr.size===2)ld=dist();mv=0});
+cv.addEventListener('pointermove',e=>{const p=ptr.get(e.pointerId);if(!p)return;const ox=p.x;p.x=e.clientX;p.y=e.clientY;
+ if(ptr.size===2){const d=dist(),[m,n]=[...ptr.values()];zoom((m.x+n.x)/2,ld/d);ld=d;mv=99}else{pan(e.clientX-ox);mv+=Math.abs(e.clientX-ox)}});
+const up=e=>{if(!ptr.has(e.pointerId))return;ptr.delete(e.pointerId);
+ if(ptr.size===0&&e.type==='pointerup'&&mv<6){const n=Date.now();if(n-lt<320){V[mode]=null;draw();lt=0}else lt=n}};
+['pointerup','pointercancel','pointerleave'].forEach(t=>cv.addEventListener(t,up));
+cv.addEventListener('wheel',e=>{e.preventDefault();zoom(e.clientX,e.deltaY>0?1.15:1/1.15)},{passive:false});
+function fetchFor(){if(mode==='gold')loadGold(range);else if(SHORT[range])loadIntra(range)}
 document.querySelectorAll('.rb').forEach(b=>b.onclick=()=>{range=b.dataset.r;
- document.querySelectorAll('.rb').forEach(o=>o.className='rb'+(o===b?' on':''));
- delete errs[range];if(SHORT[range]&&!intra[range])loadIntra(range);draw()});
-$('b-ma').onclick=()=>{showMA=!showMA;$('b-ma').className=showMA?'on':'';draw()};
-const keyUSD=$('key').innerHTML;
+ document.querySelectorAll('.rb').forEach(q=>q.className='rb'+(q===b?' on':''));
+ V.usd=V.gold=null;delete errs[range];delete gerr[range];fetchFor();draw()});
+document.querySelectorAll('.tg').forEach(b=>b.onclick=()=>{const k=b.dataset.k;T[k]=T[k]?0:1;b.className='tg'+(T[k]?' on':'');draw()});
 function setMode(m){mode=m;$('b-usd').className=m==='usd'?'on':'';$('b-gold').className=m==='gold'?'on':'';
- $('usdctl').style.display=m==='usd'?'':'none';
- $('ctitle').textContent=m==='usd'?'Price vs power law (log scale)':'BTC priced in gold';
- if(m==='usd')$('key').innerHTML=keyUSD;if(m==='usd'&&SHORT[range]&&!intra[range])loadIntra(range);draw()}
+ $('usdctl').style.display=m==='usd'?'':'none';$('ctitle').textContent=m==='usd'?'Bitcoin · USD':'Bitcoin priced in gold';fetchFor();draw()}
 $('b-usd').onclick=()=>setMode('usd');$('b-gold').onclick=()=>setMode('gold');
 addEventListener('resize',draw);
-loadPrice();loadNet();loadHist();loadNews();loadGold();
-setInterval(loadPrice,60000);setInterval(loadNet,120000);setInterval(loadNews,600000);
+
+const BGU='https://bitcoin-data.com/v1/',OC={rp:[],sth:[],lth:[],sd:0,sup:0,cmAt:0,sthMvrv:null,sthSopr:null};
+const pr=v=>+v.toPrecision(3),fm=v=>'$'+(v>=1e6?pr(v/1e6)+'M':v>=1e3?pr(v/1e3)+'k':pr(v));
+const COL=['#4aa3ff','#2ecc71','#f1c40f','#ff9f43','#ff5c5c'],SKIP=['d','date','day','unixTs','timestamp','time','t','metric'];
+const lvl=(v,th)=>{let i=0;while(i<th.length&&v>=th[i])i++;return i};
+const ls=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+const lastv=a=>a&&a.length?a[a.length-1][1]:null;
+const dstr=t=>new Date(t).toLocaleDateString([],{month:'short',day:'numeric'});
+let ocR='4y';
+function bgRows(d){const a=Array.isArray(d)?d:(d&&d.data)||[d];
+ return a.map(o=>{if(Array.isArray(o))return[+o[0],+o[1]];
+  const dt=o.d||o.date||o.day,t=dt?Date.parse(dt.length>10?dt:dt+'T00:00:00Z'):(u=>u>1e12?u:u*1e3)(+(o.unixTs||o.timestamp||o.time));
+  let v=o.value!==undefined?+o.value:NaN;
+  if(!isFinite(v))for(const k in o)if(!SKIP.includes(k)&&isFinite(parseFloat(o[k]))){v=parseFloat(o[k]);break}
+  return[t,v]}).filter(p=>isFinite(p[0])&&isFinite(p[1]))}
+async function bg(path,full){const k='bg:'+path+(full?'':':l'),c=ls(k);
+ if(c&&Date.now()-c.at<288e5)return c.v;
+ try{let d=bgRows(await j(BGU+path+(full?'':'/last')));if(!d.length)throw 0;if(!full)d=d.slice(-1);
+  try{localStorage.setItem(k,JSON.stringify({at:Date.now(),v:d}))}catch(e){}return d}
+ catch(e){return c?c.v:null}}
+async function loadCM(){try{
+ const r=(await j('https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=PriceUSD,CapMVRVCur,CapMrktCurUSD&frequency=1d&start_time=2010-07-18&page_size=10000')).data;
+ const w=r.map(o=>({t:Date.parse(o.time),p:+o.PriceUSD,mv:+o.CapMVRVCur,mc:+o.CapMrktCurUSD})).filter(o=>o.p>0&&o.mv>0&&o.mc>0);
+ if(w.length<500)throw 0;
+ const m=w.reduce((s,o)=>s+o.mc,0)/w.length,L=w[w.length-1];
+ OC.sd=Math.sqrt(w.reduce((s,o)=>s+(o.mc-m)**2,0)/w.length);OC.sup=L.mc/L.p;OC.cmAt=L.t;OC.rp=w.map(o=>[o.t,o.p/o.mv]);
+ }catch(e){}}
+async function loadBG(){
+ const[a,b,c,d]=await Promise.all([bg('sth-realized-price',1),bg('lth-realized-price',1),bg('sth-mvrv'),bg('sth-sopr')]);
+ if(a)OC.sth=a;if(b)OC.lth=b;if(c)OC.sthMvrv=c[0];if(d)OC.sthSopr=d[0]}
+async function loadOC(){await Promise.all([loadCM(),loadBG()]);renderOC();ocChart()}
+function renderOC(){
+ if(!price)return;
+ const cards=[],heat=[],now=Date.now(),x2=v=>v.toFixed(2),xx=v=>x2(v)+'×';
+ const add=(label,v,f,th,names,hot,sub,lv)=>{
+  if(v==null||!isFinite(v)){cards.push([label,'—','no data yet',-1]);return}
+  const i=lvl(lv==null?v:lv,th);cards.push([label,f(v),names[i]+(sub?' · '+sub:''),i]);if(hot)heat.push(i)};
+ const rp=lastv(OC.rp),mv=rp?price/rp:null;
+ const ma200=ma&&lastv(ma.m200),p111=ma&&lastv(ma.p111),p350=ma&&lastv(ma.p350);
+ let pu=null;
+ if(hist.length>366){const sb=t=>t<Date.UTC(2012,10,28)?50:t<Date.UTC(2016,6,9)?25:t<Date.UTC(2020,4,11)?12.5:t<Date.UTC(2024,3,20)?6.25:3.125;
+  pu=price*sb(now)/(hist.slice(-365).reduce((s,p)=>s+p[1]*sb(p[0]),0)/365)}
+ const sth=lastv(OC.sth),lth=lastv(OC.lth),B=['Deep below it','Below it','Just above it','Above it','Well above it'];
+ add('MVRV',mv,x2,[1,2,3,3.7],['Undervalued','Healthy','Warm','Hot','Overheated'],1);
+ add('MVRV Z-score',rp&&OC.sd?OC.sup*(price-rp)/OC.sd:null,x2,[0,2,4,6],['Undervalued','Neutral','Warming','Hot','Overheated'],1);
+ add('NUPL',mv?1-1/mv:null,x2,[0,.25,.5,.75],['Capitulation','Hope / fear','Optimism','Belief','Euphoria'],1);
+ add('Realized price',rp,fm,[1,1.5,2.5,4],['Price below it','Just above it','Healthy gap','Extended','Very extended'],0,mv?'price '+xx(mv)+' it':'',mv);
+ add('Mayer multiple',ma200?price/ma200:null,xx,[.8,1.2,1.8,2.4],['Deep value','Neutral','Warm','Hot','Overheated'],1);
+ add('Puell multiple',pu,x2,[.5,1.2,2.5,4],['Miner stress','Normal','Warm','Hot','Overheated'],1);
+ add('Pi Cycle (111D ÷ 2×350D)',p111&&p350?p111/(2*p350):null,x2,[.5,.8,.95,1],['Cold','Neutral','Warming','Near top signal','Top signal'],1);
+ add('Price vs power law',price/pl(now),xx,[.6,1,1.6,2.4],['Deep value','Below fair','Above fair','Hot','Overheated'],1);
+ add('STH cost basis',sth,fm,[.8,1,1.15,1.4],B,0,sth?'price '+xx(price/sth)+' basis':'',sth?price/sth:null);
+ add('LTH cost basis',lth,fm,[1,1.5,2.5,4],['Price below it','Just above it','Healthy gap','Extended','Very extended'],0,lth?'price '+xx(price/lth)+' basis':'',lth?price/lth:null);
+ add('STH MVRV',OC.sthMvrv&&OC.sthMvrv[1],x2,[.85,1,1.2,1.5],['Deep loss','At a loss','Near break-even','In profit','Very profitable'],0);
+ add('STH SOPR',OC.sthSopr&&OC.sthSopr[1],v=>v.toFixed(3),[.97,1,1.03,1.1],['Heavy loss selling','Selling at a loss','Near break-even','Profit taking','Heavy profit taking'],0);
+ const cd=([l,v,z,i])=>'<div class="card"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="zn" style="color:'+(i<0?'#8a94a0':COL[i])+'">'+z+'</div></div>';
+ const G=[['Valuation (MVRV, NUPL, realized price)',0,4],['Price models (Mayer, Puell, Pi Cycle, power law)',4,8],['Short-term vs long-term holders',8,12]];
+ $('ocg').innerHTML=G.map(([t,a,b])=>'<div class="sub">'+t+'</div><div class="grid">'+cards.slice(a,b).map(cd).join('')+'</div>').join('')+(sth||lth?'':'<div class="key">Short/long-term holder data is not loading right now (BGeometrics feed blocked or rate-limited).</div>');
+ if(heat.length>=3){
+  const sc=Math.round(heat.reduce((s,i)=>s+i,0)/heat.length/4*100);
+  $('ocsc').textContent=sc+'/100';$('gm').style.left=sc+'%';
+  $('ochl').textContent=sc<20?'Deep value':sc<40?'Early / cool':sc<60?'Mid-cycle':sc<80?'Warm / late':'Overheated';
+  const up=ma200?price>ma200:null,sb=sth?price>sth:null;
+  const tr=up==null?'mixed':(up&&sb!==false)?'up':(!up&&sb!==true)?'down':'mixed';
+  const ph={up:['Early bull / recovery','Mid-cycle bull','Late bull / overheating'],down:['Bear / accumulation zone','Mid-cycle pullback or bear','Topping / bear starting'],mixed:['Bottoming / transition','Transition','Topping risk']}[tr][sc<35?0:sc<65?1:2];
+  $('ocph').textContent='Reading: '+ph+' (indicator-based, not a prediction)';
+  $('octr').textContent='Trend: '+tr+(up==null?'':' · price '+(up?'above':'below')+' 200D MA')+(sb==null?'':' · '+(sb?'above':'below')+' STH cost basis')+' · '+heat.length+' heat metrics';
+ }
+ $('ocn').textContent='Realized price as of '+(OC.cmAt?dstr(OC.cmAt):'—')+' (Coin Metrics, live price applied). STH/LTH data as of '+(OC.sth.length?dstr(OC.sth[OC.sth.length-1][0]):'unavailable')+' (BGeometrics free data can lag about a week and is capped at 15 requests/day, so it refreshes at most every 8h). Zones are common rules of thumb.';
+}
+function ocChart(){
+ const c=$('oc');if(!c||!hist.length)return;
+ const dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;
+ const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,W,H);
+ const t1=Date.now(),t0=ocR==='all'?hist[0][0]:t1-(ocR==='1y'?1:4)*365*D,pw=W-PL-PR,ph=H-PT-PB;
+ const S=[[hist,'#f7931a',1.6],[OC.rp,'#e6e8ea',1.2],[OC.sth,'#ff6b9d',1.4],[OC.lth,'#4aa3ff',1.4]].map(([a,col,w])=>[a.filter(p=>p[0]>=t0&&p[1]>0),col,w]);
+ const all=S.flatMap(q=>q[0].map(p=>p[1]));if(!all.length)return;
+ const a=Math.log10(Math.min(...all))-.04,b=Math.log10(Math.max(...all))+.04;
+ const X=t=>PL+(t-t0)/(t1-t0)*pw,Y=v=>PT+(1-(Math.log10(v)-a)/(b-a))*ph;
+ const kept=[];for(const m of[1,2,5,3,1.5,7])for(let e=Math.floor(a)-1;e<=Math.ceil(b);e++){const v=m*Math.pow(10,e),lv=Math.log10(v);if(lv>a&&lv<b&&kept.every(k=>Math.abs(Y(k)-Y(v))>=17))kept.push(v)}
+ x.font='10px monospace';x.lineWidth=1;
+ kept.forEach(v=>{const y=Y(v);x.strokeStyle='#232a33';x.beginPath();x.moveTo(PL,y);x.lineTo(W-PR,y);x.stroke();x.fillStyle='#8a94a0';x.fillText(fm(v),2,y+3)});
+ const sp=t1-t0,o=sp<2*365*D?{month:'short',year:'2-digit'}:{year:'numeric'};x.fillStyle='#8a94a0';
+ for(let i=0;i<=3;i++){const t=t0+sp*i/3;x.fillText(new Date(t).toLocaleString([],o),Math.min(Math.max(X(t)-18,PL),W-46),H-4)}
+ x.save();x.beginPath();x.rect(PL,PT,pw,ph);x.clip();
+ S.forEach(([q,col,w])=>{x.beginPath();x.strokeStyle=col;x.lineWidth=w;q.forEach((p,i)=>{const px=X(p[0]),py=Y(p[1]);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke()});
+ x.restore();
+}
+document.querySelectorAll('.ocr').forEach(b=>b.onclick=()=>{ocR=b.dataset.r;document.querySelectorAll('.ocr').forEach(q=>q.className='ocr'+(q===b?' on':''));ocChart()});
+addEventListener('resize',ocChart);
+loadPrice();loadNet();histP=loadHist();loadNews();loadOC();
+setInterval(loadPrice,60000);setInterval(loadNet,120000);setInterval(loadNews,600000);setInterval(loadOC,108e5);
 </script></body></html>
