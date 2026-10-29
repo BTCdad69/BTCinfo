@@ -36,6 +36,7 @@ canvas{width:100%;height:300px;display:block;touch-action:pan-y;user-select:none
 summary{cursor:pointer;color:var(--ac)}
 .sub{margin:12px 0 2px;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 @media(max-width:639px){#ocg .grid .card:last-child:nth-child(odd){grid-column:1/-1}}
+.tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px;display:inline-block;vertical-align:1px}.tag.up{background:#3ddc9733;color:#3ddc97}.tag.dn{background:#ff5c5c33;color:#ff5c5c}.tag.nt{background:#8a94a033;color:#8a94a0}
 .tg{opacity:.4}.tg.on{opacity:1;border-color:currentColor}
 .key{font-size:11px;color:var(--mut);margin-top:6px}
 .news a{display:block;color:var(--tx);text-decoration:none;padding:8px 0;border-top:1px solid var(--bd)}
@@ -109,7 +110,7 @@ summary{cursor:pointer;color:var(--ac)}
 <div class="note" id="ocn">Loading on-chain data…</div>
 <div class="note">Data: CoinGecko, mempool.space, blockchain.com, alternative.me, Coin Metrics, BGeometrics, GDELT, Hacker News. Zones and models are rules of thumb, not financial advice.</div>
 
-<div class="card news" style="margin-top:8px"><div class="bar"><span class="l">Latest news</span><span><button class="nt on" data-n="btc">Bitcoin</button><button class="nt" data-n="mac">Macro</button></span></div><div id="news">loading…</div><div class="key" id="nst" style="margin-top:6px"></div></div>
+<div class="card news" style="margin-top:8px"><div class="bar"><span class="l">Latest news</span><span><button class="nt on" data-n="btc">Bitcoin</button><button class="nt" data-n="mac">Macro</button></span></div><div class="key" id="nsm" style="margin-bottom:4px;color:var(--tx)"></div><div id="news">loading…</div><div class="key" id="nst" style="margin-top:6px"></div></div>
 
 
 <script>
@@ -173,15 +174,30 @@ async function cc(){try{const d=(await j('https://min-api.cryptocompare.com/data
  return d.map(i=>({t:i.title,l:i.url,d:new Date(i.published_on*1e3),s:(i.source_info&&i.source_info.name)||i.source||'CryptoCompare'}))}catch(e){return null}}
 async function rss(u){try{const d=await j('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(u));
  return d.items.map(i=>({t:i.title,l:i.link,d:new Date(i.pubDate.replace(' ','T')+'Z'),s:(d.feed.title||'').split(' ')[0]}))}catch(e){return null}}
+const UPV=/\b(rise|rises|rising|rose|jump|jumps|jumped|surge|surges|surged|climb|climbs|spike|spikes|soar|soars|higher|hotter|accelerat\w*|strengthen\w*|rall(y|ies)|gains?)\b/,DNV=/\b(fall|falls|fell|drop|drops|dropped|slide|slides|slip|slips|ease|eases|eased|cool|cools|cooled|cooling|slow|slows|slowed|lower|retreat\w*|declin\w*|tumble\w*|plunge\w*|weaker|weaken\w*|soften\w*|sink\w*)\b/;
+const UPG=new RegExp(UPV.source,'g'),DNG=new RegExp(DNV.source,'g'),MACS=/\b(dollar|dxy|yields?|inflation|cpi|ppi)\b/,NEGW=/\b(no|not|never|without|despite|fails? to|unable to|won't|isn't|aren't|unlikely to)\b/;
+const LEX=[[/all[- ]time high|record high|new high|\bath\b/,2],[/\b(surg|soar|skyrocket|rall|breakout|breaks? out)\w*/,1.5],[/\b(rebound|recover|reclaim|jump|climb|spike|gain|rise|rises|rising|rose)\w*/,1],[/bullish|\bbulls\b/,2],
+ [/\b(approv|adopt|accumulat|inflow|upgrad)\w*/,1.5],[/\b(buys?|buying|bought|purchas\w*|reserve|stimulus|easing|dovish|soft landing|milestone|partnership)\b/,1],[/rate cuts?|cuts? (interest )?rates?|cutting rates/,2],
+ [/\b(crash|plunge|collaps|bankrupt|insolven)\w*/,-2],[/\b(tumbl|sink|slump|sell-?off|dump|liquidat|outflow|downgrad|panic|crackdown|exploit|stolen|theft|fraud|delist)\w*/,-1.5],[/\bhack(ed|s|ers?)?\b/,-2],[/bearish|\bbears\b/,-2],
+ [/\b(ban|bans|banned|lawsuit|sues?|sued|scam|probe|investigat\w*|reject\w*|denied|denies|warn\w*|fear\w*|losing|loss|losses|fall|falls|fell|drop|drops|dropped|declin\w*|slide|slides|slip|slips|weak\w*)\b/,-1],
+ [/rate hikes?|hikes? (interest )?rates?|raises? (interest )?rates?|hawkish/,-2],[/\b(recession|default|trade war|shutdown)\w*/,-1.5],[/\bbelow \$|\brisk\b|sanction\w*|layoffs?/,-.5]];
+function sent(h){h=h.toLowerCase();let s=0;
+ if(/\btariffs?\b/.test(h))s+=/\b(cut|pause|delay|remov|relief|lift|exempt|rollback|truce|deal|suspend)/.test(h)?2:-1;
+ if(MACS.test(h)){const u=UPV.test(h),d=DNV.test(h);if(u&&!d){s-=2;h=h.replace(UPG,' ')}else if(d&&!u){s+=2;h=h.replace(DNG,' ')}}
+ for(const[re,w]of LEX){const m=re.exec(h);if(m)s+=NEGW.test(h.slice(Math.max(0,m.index-28),m.index))?-w:w}
+ return s>=1?'up':s<=-1?'dn':'nt'}
 const merge=(lists,re)=>{const seen=new Set(),o=[];lists.forEach(a=>(a||[]).forEach(i=>{const k=i.t.toLowerCase().slice(0,60);if(!seen.has(k)&&re.test(i.t)){seen.add(k);o.push(i)}}));return o.sort((a,b)=>b.d-a.d).slice(0,15)};
 function renderNews(){
- const box=$('news'),L=NEWS[nTab];box.textContent='';
- $('nst').textContent=Object.keys(NS).length?'Sources: '+Object.keys(NS).map(k=>k+(NS[k]?' ✓':' ✗')).join(' · '):'';
+ const box=$('news'),L=NEWS[nTab];box.textContent='';$('nsm').textContent='';
+ $('nst').textContent=Object.keys(NS).length?'Sources: '+Object.keys(NS).map(k=>k+(NS[k]?' ✓':' ✗')).join(' · ')+' · Tags are keyword guesses from headlines only':'';
  if(!L){box.textContent='Loading…';return}
  if(!L.length){box.textContent='No headlines loaded. The sources may be blocked or rate-limited in your browser.';return}
- L.forEach(i=>{const a=document.createElement('a');a.href=i.l;a.target='_blank';a.rel='noopener';a.textContent=i.t;
+ const cnt={up:0,dn:0,nt:0};
+ L.forEach(i=>{const a=document.createElement('a');a.href=i.l;a.target='_blank';a.rel='noopener';i.v=i.v||sent(i.t);cnt[i.v]++;
+  const tg=document.createElement('span');tg.className='tag '+i.v;tg.textContent={up:'Bullish',dn:'Bearish',nt:'Neutral'}[i.v];a.appendChild(tg);a.appendChild(document.createTextNode(i.t));
   const s=document.createElement('small');s.textContent=i.s+(i.d>1e11?' · '+i.d.toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'');
-  a.appendChild(document.createElement('br'));a.appendChild(s);box.appendChild(a)})}
+  a.appendChild(document.createElement('br'));a.appendChild(s);box.appendChild(a)});
+ $('nsm').textContent=cnt.up+' bullish · '+cnt.dn+' bearish · '+cnt.nt+' neutral'}
 async function loadNews(){
  const[g,h,c]=await Promise.all([gdelt('bitcoin sourcelang:english'),hn('bitcoin'),cc()]);
  let r=null;if(!(g&&g.length)&&!(h&&h.length)&&!(c&&c.length))r=await Promise.all(['https://cointelegraph.com/rss','https://www.coindesk.com/arc/outboundfeeds/rss/'].map(rss));
