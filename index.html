@@ -36,6 +36,7 @@ canvas{width:100%;height:300px;display:block;touch-action:pan-y;user-select:none
 summary{cursor:pointer;color:var(--ac)}
 .sub{margin:12px 0 2px;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 @media(max-width:639px){#ocg .grid .card:last-child:nth-child(odd){grid-column:1/-1}}
+.hl{font-size:14px;font-weight:600;color:var(--tx)}.hl b{color:var(--ac)}
 .tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px;display:inline-block;vertical-align:1px}.tag.up{background:#3ddc9733;color:#3ddc97}.tag.dn{background:#ff5c5c33;color:#ff5c5c}.tag.nt{background:#8a94a033;color:#8a94a0}
 .tg{opacity:.4}.tg.on{opacity:1;border-color:currentColor}
 .key{font-size:11px;color:var(--mut);margin-top:6px}
@@ -447,9 +448,9 @@ function renderOC(){
   $('ocvt').textContent='Overall: '+VERD[t]+'. '+cnt[mj]+' of '+lv5.length+' indicators read '+W5[mj]+'; the trend is '+tr+'.';
   const ks=Object.keys(pcs).map(k=>pcs[k]).sort((a,b)=>a-b);
   if(ks.length){const md=Math.max(1,Math.min(99,Math.round(ks[(ks.length-1)>>1]*100)));
-   $('ocpc').textContent='Pricier than '+md+'% of days since 2012 (median of '+ks.length+' indicators).'+(pp==null?'':' vs power-law trend: '+rare(pp,'since 2012'))}
+   $('ocpc').innerHTML='<div class="hl">Pricier than <b>'+md+'%</b> of days since 2012</div><div class="key" style="margin:0 0 6px">median of '+ks.length+' valuation indicators</div>'+(pp==null?'':'<div class="hl">Power law: '+rare(pp,'since 2012').replace(/(\d+%)/,'<b>$1</b>')+'</div>')}
   if(PCT.pl&&PCT.pl.length>200){const f=pl(now);
-   $('ocpb').innerHTML='<span class="chip" style="background:#e6e8ea;color:#0b0d10;border-color:#e6e8ea">Now · '+fu(price)+(pp==null?'':' · percentile '+pp)+'</span>'+[.05,.25,.5,.75,.95].map(q=>'<span class="chip" style="color:#8fa3b5;border-color:#8fa3b5">'+Math.round(q*100)+'% · '+fu(f*quant(PCT.pl,q))+'</span>').join('')}
+   $('ocpb').innerHTML='<span class="chip" style="background:#e6e8ea;color:#0b0d10;border-color:#e6e8ea">Now · '+fu(price)+(pp==null?'':' · power-law percentile '+pp)+'</span>'+[.05,.25,.5,.75,.95].map(q=>'<span class="chip" style="color:#8fa3b5;border-color:#8fa3b5">'+'Trend '+Math.round(q*100)+'% · '+fu(f*quant(PCT.pl,q))+'</span>').join('')}
   $('octr').textContent='Trend: '+tr+' (above '+na+' of '+vs.length+': 200-day, 20-week, STH cost basis) · Score '+sc+'/100'+(al.length?' · '+al.join(' · '):'');
  }
  $('ocn').textContent='Realized price: '+(OC.cmAt?dstr(OC.cmAt):'—')+' (Coin Metrics). Holder cost basis: '+(OC.sth.length?dstr(OC.sth[OC.sth.length-1][0]):'unavailable')+' (BGeometrics free tier, up to ~1 week old, refreshes every 8h).';
