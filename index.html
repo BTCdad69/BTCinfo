@@ -22,9 +22,12 @@ button{background:none;border:1px solid var(--bd);color:var(--mut);border-radius
 button.on{color:var(--ac);border-color:var(--ac)}
 canvas{width:100%;height:300px;display:block;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .sec{margin:14px 0 6px;color:var(--ac);font-size:12px;letter-spacing:.08em}
-.gauge{height:8px;border-radius:4px;background:linear-gradient(90deg,#4aa3ff,#2ecc71,#f1c40f,#ff9f43,#ff5c5c);position:relative;margin-top:10px}
+.gauge{height:8px;border-radius:4px;background:linear-gradient(90deg,#4aa3ff,#3ddc97,#c8d0d8,#ff9f43,#ff5c5c);position:relative;margin-top:10px}
 .gauge i{position:absolute;top:-4px;width:3px;height:16px;background:#fff;border-radius:2px;transform:translateX(-50%)}
-.zn{font-size:11px;margin-top:2px}
+.zn{font-size:13px;font-weight:700;margin-top:2px}
+.br{font-size:11px;color:var(--mut);margin-top:1px}
+.gl{display:flex;justify-content:space-between;font-size:9px;color:var(--mut);margin-top:4px}
+.big{font-size:28px;font-weight:700;line-height:1.1}.ph{font-size:15px;font-weight:600;margin-top:2px}
 .pl{color:var(--mut);font-size:10px;margin:1px 0 3px}
 #ocg .card{cursor:pointer}#ocg .card.open{grid-column:1/-1}
 .dt{margin-top:8px;border-top:1px solid var(--bd);font:12px/1.5 system-ui,sans-serif;cursor:default}
@@ -32,6 +35,7 @@ canvas{width:100%;height:300px;display:block;touch-action:pan-y;user-select:none
 .chips{display:flex;flex-wrap:wrap;gap:4px}.chip{font-size:11px;padding:3px 6px;border-radius:4px;border:1px solid}
 summary{cursor:pointer;color:var(--ac)}
 .sub{margin:12px 0 2px;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+@media(max-width:639px){#ocg .grid .card:last-child:nth-child(odd){grid-column:1/-1}}
 .tg{opacity:.4}.tg.on{opacity:1;border-color:currentColor}
 .key{font-size:11px;color:var(--mut);margin-top:6px}
 .news a{display:block;color:var(--tx);text-decoration:none;padding:8px 0;border-top:1px solid var(--bd)}
@@ -47,48 +51,55 @@ summary{cursor:pointer;color:var(--ac)}
 
 <div class="grid">
 <div class="card"><div class="l">Market cap</div><div class="v" id="mc">—</div></div>
-<div class="card"><div class="l">Power-law fair value</div><div class="v" id="plv">—</div></div>
-<div class="card"><div class="l">vs power law</div><div class="v" id="dev">—</div></div>
-<div class="card"><div class="l">Fear &amp; Greed</div><div class="v" id="fg">—</div></div>
-<div class="card"><div class="l">Block height</div><div class="v" id="bh">—</div></div>
-<div class="card"><div class="l">Fees (sat/vB) fast / 1h</div><div class="v" id="fee">—</div></div>
-<div class="card"><div class="l">Days since genesis</div><div class="v" id="dg">—</div></div>
 <div class="card"><div class="l">Sats per $1</div><div class="v" id="sats">—</div></div>
-</div>
-
-<div class="card">
-<div class="bar"><span class="l" id="ctitle">Bitcoin · USD</span>
-<span><button id="b-usd" class="on">USD</button><button id="b-gold">GOLD</button></span></div>
-<div style="margin:0 0 6px"><button class="rb" data-r="1d" style="margin-left:0">1D</button><button class="rb" data-r="1w">1W</button><button class="rb" data-r="1m">1M</button><button class="rb" data-r="3m">3M</button><button class="rb" data-r="1y">1Y</button><button class="rb" data-r="5y">5Y</button><button class="rb on" data-r="all">ALL</button></div>
-<div id="usdctl" style="margin:0 0 6px"><button class="tg on" data-k="d50" style="color:#4aa3ff;margin-left:0">50D</button><button class="tg on" data-k="d200" style="color:#b07cff">200D</button><button class="tg on" data-k="w200" style="color:#2ecc71">200W</button><button class="tg on" data-k="pl" style="color:#e6e8ea">Power law</button><button class="tg on" data-k="bd" style="color:#8fa3b5">Bands</button></div>
-<canvas id="ch"></canvas>
-<div class="key" id="key"></div>
+<div class="card"><div class="l">Next-block fee (sat/vB)</div><div class="v" id="fee1">—</div></div>
+<div class="card"><div class="l">1-hour fee (sat/vB)</div><div class="v" id="fee2">—</div></div>
+<div class="card"><div class="l">vs power law</div><div class="v" id="dev">—</div></div>
+<div class="card"><div class="l">Power-law fair value</div><div class="v" id="plv">—</div></div>
+<div class="card"><div class="l">Fear &amp; Greed</div><div class="v" id="fg">—</div></div>
+<div class="card"><div class="l">Days since genesis</div><div class="v" id="dg">—</div></div>
 </div>
 
 <div class="card" style="margin-top:8px"><div class="l">Next halving</div><div class="v" id="hv">—</div>
 <div class="prog"><i id="hvp" style="width:0"></i></div><div class="key" id="hvs"></div></div>
 
 <div class="grid">
-<div class="card"><div class="l">Mempool txs</div><div class="v" id="mtx">—</div></div>
+<div class="card"><div class="l">Block height</div><div class="v" id="bh">—</div></div>
 <div class="card"><div class="l">Mempool size</div><div class="v" id="msz">—</div></div>
 <div class="card"><div class="l">Hashrate (3d)</div><div class="v" id="hr">—</div></div>
 <div class="card"><div class="l">Next difficulty adj.</div><div class="v" id="da">—</div></div>
 </div>
 
+<div class="card">
+<div class="bar"><span class="l" id="ctitle">Bitcoin · USD</span>
+<span><button id="b-usd" class="on">USD</button><button id="b-gold">GOLD</button></span></div>
+<div style="margin:0 0 6px"><button class="rb" data-r="1d" style="margin-left:0">1D</button><button class="rb" data-r="1w">1W</button><button class="rb" data-r="1m">1M</button><button class="rb" data-r="3m">3M</button><button class="rb" data-r="1y">1Y</button><button class="rb" data-r="5y">5Y</button><button class="rb on" data-r="all">ALL</button></div>
+<div id="usdctl" style="margin:0 0 6px"><button class="tg on" data-k="d50" style="color:#4aa3ff;margin-left:0">50D</button><button class="tg on" data-k="d200" style="color:#b07cff">200D</button><button class="tg on" data-k="w200" style="color:#2ecc71">200W</button><button class="tg on" data-k="pl" style="color:#e6e8ea">Power law</button><button class="tg on" data-k="bd" style="color:#8fa3b5">5–95% band</button></div>
+<canvas id="ch"></canvas>
+<div class="key" id="key"></div>
+</div>
+
 <div class="sec">ON-CHAIN · CYCLE READ</div>
 <details class="card" style="margin-bottom:8px"><summary>New here? How to read this section</summary><div class="dt">
-<p><b>Cost basis</b><br>The average price a group of holders paid. If today’s price is above it, that group is in profit; below it, they’re at a loss. Groups at a loss tend to sell rallies; groups in profit tend to hold.</p>
-<p><b>Short-term vs long-term holders</b><br>Short-term holders (STH) held their coins under about 155 days: recent, more emotional buyers. Long-term holders (LTH) held over 155 days: patient holders who rarely sell.</p>
-<p><b>Colors</b><br>Blue = cheap/cold · green = healthy · yellow = warm · orange = hot · red = overheated.</p>
-<p><b>Tap any card</b><br>You get a plain-English explanation, the math behind today’s number, and what each color zone means.</p>
-<p class="cv">These are rules of thumb from past cycles, not predictions or financial advice.</p></div></details>
+<p><b>The one-word scale</b><br>Every indicator is boiled down to: <span style="color:#4aa3ff">Oversold</span> → <span style="color:#3ddc97">Undervalued</span> → <span style="color:#c8d0d8">Fair value</span> → <span style="color:#ff9f43">Cautious</span> → <span style="color:#ff5c5c">Overbought</span>. Left = historically a good time to buy, right = historically a time for caution.</p>
+<p><b>Phase</b><br>The big card combines that score with the trend (is price above its 200-day average and the short-term holder cost basis?) to name a phase, like “Early bull” or “Late bull”.</p>
+<p><b>Cost basis</b><br>The average price a group of holders paid. Price above it = that group is in profit; below = at a loss. Short-term holders (STH) held under about 155 days; long-term holders (LTH) over 155 days.</p>
+<p><b>Tap any card</b><br>For what it measures, the math behind today’s number, and how reliable it has been.</p>
+<p class="cv">Rules of thumb from past cycles, not predictions or financial advice.</p></div></details>
 <div class="card">
-<div class="l">Cycle heat</div>
-<div class="v"><span id="ocsc">—</span> · <span id="ochl">loading…</span></div>
+<div class="l">Cycle summary · all indicators</div>
+<div class="big" id="ochl">loading…</div>
+<div class="ph" id="ocph"></div>
 <div class="gauge"><i id="gm" style="left:0"></i></div>
-<div class="key" id="ocph" style="margin-top:10px"></div>
-<div class="key" id="octr"></div>
-<div class="key" style="margin-top:6px">Score = average of 7 “is Bitcoin expensive vs. its history?” indicators (MVRV, Z-score, NUPL, Mayer, Puell, Pi Cycle, power law). 0 = very cheap, 100 = very hot.</div>
+<div class="gl"><span>Oversold</span><span>Undervalued</span><span>Fair value</span><span>Cautious</span><span>Overbought</span></div>
+<div class="chips" id="octl" style="margin-top:10px"></div>
+<div class="key" id="ocvt" style="margin-top:6px;color:var(--tx)"></div>
+<div class="sub">History check</div>
+<div class="key" id="ocpc"></div>
+<div class="chips" id="ocpb" style="margin-top:6px"></div>
+<div class="key" style="margin-top:4px">Power-law price percentiles: the share of days since 2012 that Bitcoin traded at or below each level, relative to the trend. The chart’s dashed band is the 5%–95% range.</div>
+<div class="key" id="octr" style="margin-top:8px"></div>
+<div class="key" style="margin-top:4px">Score uses 5 indicators: MVRV, power law, Mayer multiple, Puell and the 200-week average. Percentiles are historical frequencies, not forecasts.</div>
 </div>
 <div id="ocg"></div>
 <div class="card">
@@ -129,19 +140,19 @@ async function loadPrice(){
   draw();renderOC();
 }
 function sma(n){const o=[],w=n*D;let s=0,j=0;for(let i=0;i<hist.length;i++){s+=hist[i][1];while(hist[j][0]<=hist[i][0]-w){s-=hist[j][1];j++}if(hist[i][0]-hist[0][0]>=w*.98)o.push([hist[i][0],s/(i-j+1)])}return o}
-function calcMA(){ma={m50:sma(50),m200:sma(200),w200:sma(1400),p111:sma(111),p350:sma(350)}}
+function calcMA(){ma={m50:sma(50),m200:sma(200),w200:sma(1400),p111:sma(111),p350:sma(350),w20:sma(140)};calcHist()}
 async function loadHalving(){try{const h=await j('https://mempool.space/api/blocks/tip/height');
  const nxt=Math.ceil((h+1)/210000)*210000,left=nxt-h,ms=left*600000,eta=new Date(Date.now()+ms);
  $('hv').textContent=Math.floor(ms/D)+'d '+Math.floor(ms%D/36e5)+'h · '+left.toLocaleString()+' blocks';
  $('hvp').style.width=((1-left/210000)*100).toFixed(1)+'%';
  $('hvs').textContent='Est. '+eta.toLocaleDateString([], {year:'numeric',month:'short',day:'numeric'})+' · block '+nxt.toLocaleString()+' · reward '+(50/Math.pow(2,nxt/210000-1))+' → '+(50/Math.pow(2,nxt/210000))+' BTC (assumes 10-min blocks)'}catch(e){}}
 async function loadPool(){
- try{const m=await j('https://mempool.space/api/mempool');$('mtx').textContent=m.count.toLocaleString();$('msz').textContent=(m.vsize/1e6).toFixed(1)+' vMB'}catch(e){}
+ try{const m=await j('https://mempool.space/api/mempool');$('msz').textContent=(m.vsize/1e6).toFixed(1)+' vMB'}catch(e){}
  try{const h=await j('https://mempool.space/api/v1/mining/hashrate/3d');$('hr').textContent=Math.round(h.currentHashrate/1e18)+' EH/s'}catch(e){}
  try{const a=await j('https://mempool.space/api/v1/difficulty-adjustment'),c=a.difficultyChange;$('da').textContent=(c>=0?'+':'')+c.toFixed(1)+'% · '+a.remainingBlocks.toLocaleString()+' blk'}catch(e){}}
 async function loadNet(){loadHalving();loadPool();
   try{$('bh').textContent=(await j('https://mempool.space/api/blocks/tip/height')).toLocaleString()}catch(e){}
-  try{const f=await j('https://mempool.space/api/v1/fees/recommended');$('fee').textContent=f.fastestFee+' / '+f.hourFee}catch(e){}
+  try{const f=await j('https://mempool.space/api/v1/fees/recommended');$('fee1').textContent=f.fastestFee;$('fee2').textContent=f.hourFee}catch(e){}
   try{const f=(await j('https://api.alternative.me/fng/')).data[0];$('fg').textContent=f.value+' · '+f.value_classification}catch(e){}
 }
 async function loadHist(){
@@ -207,7 +218,7 @@ function draw(){
  const vis=s.pts.filter(p=>p[0]>=t0&&p[0]<=t1);if(!vis.length)return;
  let lo=Math.min(...vis.map(p=>p[1])),hi=Math.max(...vis.map(p=>p[1]));
  const logY=um?(!SHORT[range]&&sp>2.5*365*D):hi/lo>8;
- if(um&&logY&&(T.pl||T.bd)){lo=Math.min(lo,pl(Math.max(t0,G+30*D))*(T.bd?.4:1));hi=Math.max(hi,pl(t1)*(T.bd?2.5:1))}
+ if(um&&logY&&(T.pl||T.bd)){lo=Math.min(lo,pl(Math.max(t0,G+30*D))*(T.bd?BAND.lo:1));hi=Math.max(hi,pl(t1)*(T.bd?BAND.hi:1))}
  let a,b,Y;
  if(logY){a=Math.log10(lo)-.04;b=Math.log10(hi)+.04;Y=v=>PT+(1-(Math.log10(v)-a)/(b-a))*ph}
  else{const pd=(hi-lo||hi*.01||1)*.06;a=lo-pd;b=hi+pd;Y=v=>PT+(1-(v-a)/(b-a))*ph}
@@ -225,7 +236,7 @@ function draw(){
  const ln=(q,col,w)=>{x.beginPath();x.strokeStyle=col;x.lineWidth=w;q.forEach((p,i)=>{const px=X(p[0]),py=Y(p[1]);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke()};
  const fn=(f,col,w,dash)=>{const st=Math.max(t0,G+30*D);x.beginPath();x.setLineDash(dash);x.strokeStyle=col;x.lineWidth=w;for(let i=0;i<=140;i++){const t=st+(t1-st)*i/140,px=X(t),py=Y(f(t));i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();x.setLineDash([])};
  if(um){
-  if(T.bd){fn(t=>pl(t)*.4,'#5b6b7a',1,[2,3]);fn(t=>pl(t)*2.5,'#5b6b7a',1,[2,3])}
+  if(T.bd){fn(t=>pl(t)*BAND.lo,'#5b6b7a',1,[2,3]);fn(t=>pl(t)*BAND.hi,'#5b6b7a',1,[2,3])}
   if(T.pl)fn(pl,'#e6e8ea',1.2,[6,4]);
   if(ma)[['d50','m50','#4aa3ff'],['d200','m200','#b07cff'],['w200','w200','#2ecc71']].forEach(([k,m,col])=>{if(T[k])ln(win(ma[m]),col,1.4)});
  }
@@ -252,13 +263,29 @@ document.querySelectorAll('.rb').forEach(b=>b.onclick=()=>{range=b.dataset.r;
  V.usd=V.gold=null;delete errs[range];delete gerr[range];fetchFor();draw()});
 document.querySelectorAll('.tg').forEach(b=>b.onclick=()=>{const k=b.dataset.k;T[k]=T[k]?0:1;b.className='tg'+(T[k]?' on':'');draw()});
 function setMode(m){mode=m;$('b-usd').className=m==='usd'?'on':'';$('b-gold').className=m==='gold'?'on':'';
- $('usdctl').style.display=m==='usd'?'':'none';$('ctitle').textContent=m==='usd'?'Bitcoin · USD':'Bitcoin priced in gold';fetchFor();draw()}
+ $('usdctl').style.display=m==='usd'?'':'none';$('ctitle').textContent=m==='usd'?'Bitcoin · USD':'Bitcoin priced in gold';
+ document.querySelectorAll('.rb').forEach(b=>{b.style.display=m==='gold'&&(b.dataset.r==='5y'||b.dataset.r==='all')?'none':''});
+ if(m==='gold'&&(range==='5y'||range==='all')){range='1y';V.usd=V.gold=null;document.querySelectorAll('.rb').forEach(q=>q.className='rb'+(q.dataset.r===range?' on':''))}
+ fetchFor();draw()}
 $('b-usd').onclick=()=>setMode('usd');$('b-gold').onclick=()=>setMode('gold');
 addEventListener('resize',draw);
 
+const BAND={lo:.4,hi:2.5},PCT={},T12=Date.UTC(2012,0,1);
+const subs=t=>t<Date.UTC(2012,10,28)?50:t<Date.UTC(2016,6,9)?25:t<Date.UTC(2020,4,11)?12.5:t<Date.UTC(2024,3,20)?6.25:3.125;
+const rare=(p,t)=>p<=50?(p<=15?'Only ':'')+p+'% of days '+t+' were cheaper than this.':(100-p<=15?'Only ':'')+(100-p)+'% of days '+t+' were more expensive than this.';
+const srt=a=>a.sort((x,y)=>x-y),quant=(a,q)=>a[Math.floor(q*(a.length-1))];
+const pctRank=(a,v)=>{let l=0,h=a.length;while(l<h){const m=(l+h)>>1;a[m]<=v?l=m+1:h=m}return l/a.length};
+function calcHist(){try{
+ PCT.pl=srt(hist.filter(p=>p[0]>=T12).map(p=>p[1]/pl(p[0])));
+ const rat=a=>{const k=hist.length-a.length;return srt(a.map((m,j)=>[m[0],hist[k+j][1]/m[1]]).filter(p=>p[0]>=T12).map(p=>p[1]))};
+ PCT.mayer=rat(ma.m200);PCT.w200=rat(ma.w200);
+ const iss=hist.map(p=>p[1]*subs(p[0])),pre=[0];iss.forEach((v,i)=>pre.push(pre[i]+v));
+ PCT.puell=srt(hist.map((p,i)=>i>=365?[p[0],iss[i]/((pre[i+1]-pre[i-364])/365)]:null).filter(p=>p&&p[0]>=T12).map(p=>p[1]));
+ if(PCT.pl.length>200){BAND.lo=quant(PCT.pl,.05);BAND.hi=quant(PCT.pl,.95)}
+}catch(e){}}
 const BGU='https://bitcoin-data.com/v1/',OC={rp:[],sth:[],lth:[],sd:0,sup:0,cmAt:0,sthMvrv:null,sthSopr:null};
 const pr=v=>+v.toPrecision(3),fm=v=>'$'+(v>=1e6?pr(v/1e6)+'M':v>=1e3?pr(v/1e3)+'k':pr(v));
-const COL=['#4aa3ff','#2ecc71','#f1c40f','#ff9f43','#ff5c5c'],SKIP=['d','date','day','unixTs','timestamp','time','t','metric'];
+const COL=['#4aa3ff','#3ddc97','#c8d0d8','#ff9f43','#ff5c5c'],SKIP=['d','date','day','unixTs','timestamp','time','t','metric'];
 const lvl=(v,th)=>{let i=0;while(i<th.length&&v>=th[i])i++;return i};
 const ls=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 const lastv=a=>a&&a.length?a[a.length-1][1]:null;
@@ -280,121 +307,125 @@ async function loadCM(){try{
  const w=r.map(o=>({t:Date.parse(o.time),p:+o.PriceUSD,mv:+o.CapMVRVCur,mc:+o.CapMrktCurUSD})).filter(o=>o.p>0&&o.mv>0&&o.mc>0);
  if(w.length<500)throw 0;
  const m=w.reduce((s,o)=>s+o.mc,0)/w.length,L=w[w.length-1];
- OC.sd=Math.sqrt(w.reduce((s,o)=>s+(o.mc-m)**2,0)/w.length);OC.sup=L.mc/L.p;OC.cmAt=L.t;OC.rp=w.map(o=>[o.t,o.p/o.mv]);
+ OC.sd=Math.sqrt(w.reduce((s,o)=>s+(o.mc-m)**2,0)/w.length);OC.sup=L.mc/L.p;OC.cmAt=L.t;OC.rp=w.map(o=>[o.t,o.p/o.mv]);OC.mvh=srt(w.filter(o=>o.t>=T12).map(o=>o.mv));
  }catch(e){}}
-async function loadBG(){
- const[a,b,c,d]=await Promise.all([bg('sth-realized-price',1),bg('lth-realized-price',1),bg('sth-mvrv'),bg('sth-sopr')]);
- if(a)OC.sth=a;if(b)OC.lth=b;if(c)OC.sthMvrv=c[0];if(d)OC.sthSopr=d[0]}
+async function loadBG(){const[a,b]=await Promise.all([bg('sth-realized-price',1),bg('lth-realized-price',1)]);if(a)OC.sth=a;if(b)OC.lth=b}
 async function loadOC(){await Promise.all([loadCM(),loadBG()]);renderOC();ocChart()}
-const fu=v=>'$'+Math.round(v).toLocaleString('en-US'),fb=v=>'$'+(v/1e9).toFixed(0)+'B',gp=v=>((v-1)*100).toFixed(0),lp=v=>((1-v)*100).toFixed(0);
+const fu=v=>'$'+Math.round(v).toLocaleString('en-US'),gp=v=>((v-1)*100).toFixed(0),lp=v=>((1-v)*100).toFixed(0);
+const W5=['Oversold','Undervalued','Fair value','Cautious','Overbought'];
 const SPEC={
-mvrv:{label:'MVRV',plain:'Market value ÷ realized value',
- what:`Compares today’s price with the average price at which every coin last moved on the blockchain (the “realized price”, basically the network’s average cost). 1.0 means the average holder is at break-even.`,
+mvrv:{label:'MVRV',plain:'Are holders in profit? (market ÷ realized value)',
+ what:`Compares today’s price with the average price at which every coin last moved on the blockchain (the “realized price”, roughly the network’s average cost). 1.0 means the average holder is at break-even. Below 1, the market trades below what holders paid.`,
+ brief:(c,v)=>v>=1?`avg holder up ${gp(v)}%`:`avg holder down ${lp(v)}%`,
  calc:(c,v)=>`Price ${fu(c.price)} ÷ realized price ${fu(c.rp)} = ${v.toFixed(2)}`,
  now:(c,v)=>v>=1?`The average holder is sitting on about ${gp(v)}% paper profit.`:`The average holder is underwater by about ${lp(v)}%.`,
- cav:`Rule of thumb: below 1 has marked past bear-market bottoms; above about 3.5 has marked past cycle tops. Peaks have been getting lower each cycle.`},
-z:{label:'MVRV Z-score',plain:'How stretched is MVRV?',
- what:`Takes the gap between market value and realized value and divides it by how much market cap normally swings. It scores how far from “normal” Bitcoin is. 0 = at realized value; high numbers = unusually expensive.`,
- calc:(c,v)=>`(Market cap − realized cap) ${fb(c.sup*(c.price-c.rp))} ÷ typical swing ${fb(c.sd)} = ${v.toFixed(2)}`,
- now:(c,v)=>v<0?`Below realized value, a rare cheap zone historically.`:v<2?`Within the normal range.`:v<4?`Getting expensive versus history.`:`High zone. Past tops happened above 6–7, though recent peaks have been lower.`,
- cav:`Each cycle’s peak has been smaller, so treat this as relative heat, not a fixed top signal.`},
-nupl:{label:'NUPL',plain:'Net unrealized profit/loss',
- what:`The share of Bitcoin’s market value that is paper profit. 0.40 means 40% of the market value is unrealized profit. Below 0 means the network as a whole is at a loss.`,
- calc:(c,v)=>`1 − 1 ÷ MVRV (${c.mv.toFixed(2)}) = ${v.toFixed(2)}`,
- now:(c,v)=>v>=0?`About ${(v*100).toFixed(0)}% of the market value is unrealized profit.`:`The network is at an overall unrealized loss.`,
- cav:`Zones: capitulation (below 0), hope/fear (0–0.25), optimism (0.25–0.5), belief (0.5–0.75), euphoria (above 0.75). Euphoria has coincided with past tops.`},
-rp:{label:'Realized price',plain:'Average price coins last moved',su:'price ÷ realized price',
- what:`Every coin is valued at the price it last moved on-chain, then averaged. It approximates the average price the whole network paid. Price below it means most holders are at a loss.`,
- calc:(c,v)=>`Realized price ${fu(v)} vs price ${fu(c.price)}: price is ${c.mv.toFixed(2)}× it`,
- now:(c,v)=>c.mv<1?`Price is below the average holder’s cost. This has only happened near deep bear-market lows.`:`Price is ${gp(c.mv)}% above the network’s average cost.`,
- cav:`Updated daily, so it moves slowly. It often acts as a long-term floor in bear markets.`},
-mayer:{label:'Mayer multiple',plain:'Price ÷ 200-day average',
- what:`The 200-day moving average is the average closing price over the last 200 days. The Mayer multiple shows how far price is above or below that long-term average. 1.0 = exactly at it.`,
- calc:(c,v)=>`Price ${fu(c.price)} ÷ 200-day average ${fu(c.ma200)} = ${v.toFixed(2)}×`,
- now:(c,v)=>v<1?`Price is ${lp(v)}% below its 200-day average (longer-term downtrend or discount).`:`Price is ${gp(v)}% above its 200-day average.`,
- cav:`Below about 0.8 has been cheap historically; above about 2.4 has been very stretched.`},
-puell:{label:'Puell multiple',plain:'Miner income vs yearly average',
- what:`Miners earn new coins and must sell some to pay costs. This compares today’s miner revenue (in dollars) with its average over the last 365 days. Low = miners are squeezed (often near bottoms); high = miners are cashing in big (often near tops).`,
- calc:(c,v)=>`Today’s new-coin revenue ÷ its 365-day average = ${v.toFixed(2)}`,
- now:(c,v)=>v<.5?`Miner income is very low versus its yearly average, historically a stress or bottoming zone.`:v<1.2?`Miner income is roughly normal.`:`Miner income is above its yearly average.`,
- cav:`Counts newly issued coins only (no transaction fees), so it differs slightly from versions that include fees.`},
-pi:{label:'Pi Cycle',plain:'Pi Cycle Top indicator',
- what:`Compares two moving averages: the 111-day average (fast) and twice the 350-day average (slow). In 2013, 2017 and 2021 the fast one crossed above the slow one within days of the cycle top (350 ÷ 111 is about π, hence the name). The number shown is fast ÷ slow: below 1 = no signal; 1.0 = the crossover that has marked past tops.`,
- calc:(c,v)=>`111-day average ${fu(c.p111)} ÷ (2 × 350-day average ${fu(c.p350)} = ${fu(2*c.p350)}) = ${v.toFixed(2)}`,
- now:(c,v)=>v>=1?`Signal active: the fast average is above the slow one, which has marked past cycle tops.`:`The fast average is ${lp(v)}% below the line that triggers a signal.`,
- cav:`It only warns about tops (not bottoms) and has just a handful of past examples. Treat it as one clue, not a guarantee.`},
-pl:{label:'Power law',plain:'Long-term growth trend',
- what:`A statistical model that fits Bitcoin’s price against its age (days since 2009). Bitcoin has tended to stay within a band around this trend for many years. 1.0× = on the trend line; below = cheaper than trend; above = pricier.`,
+ cav:`Track record: readings below 1 have marked major bear-market lows (2015, 2018, 2022). Readings above about 3.5 marked the 2013, 2017 and 2021 tops, but peaks have been shrinking each cycle.`},
+pl:{label:'Power law',plain:'Price vs long-term growth trend',
+ what:`A statistical model that fits Bitcoin’s price against its age (days since 2009). Bitcoin has tended to stay inside a band around this trend for many years. 1.0× = on the trend line.`,
+ brief:(c,v)=>v<1?`${lp(v)}% below trend`:`${gp(v)}% above trend`,
  calc:(c,v)=>`Price ${fu(c.price)} ÷ model fair value ${fu(c.pl)} = ${v.toFixed(2)}×`,
  now:(c,v)=>v<1?`Price is ${lp(v)}% below the trend line.`:`Price is ${gp(v)}% above the trend line.`,
  cav:`A model fitted to past data, not a law, and it can break. The dashed bands on the main chart show how far price has typically strayed.`},
-sthb:{label:'STH cost basis',plain:'Short-term holder average cost',su:'price ÷ STH cost basis',
- what:`Short-term holders (STH) are coins held less than about 155 days, mostly recent buyers who react to price swings. Their cost basis is the average price they paid. It often acts like a support or resistance line: price above it = recent buyers are in profit (healthier); price below it = they’re underwater and tend to sell rallies.`,
+puell:{label:'Puell multiple',plain:'Are miners stressed or cashing in?',
+ what:`Miners earn new coins and must sell some to pay costs. This compares today’s miner revenue (in dollars) with its average over the last 365 days. Very low = miners are squeezed; high = miners are earning far more than usual.`,
+ brief:()=>'',
+ calc:(c,v)=>`Today’s new-coin revenue ÷ its 365-day average = ${v.toFixed(2)}`,
+ now:(c,v)=>v<.5?`Miner income is very low versus its yearly average, a stress zone.`:v<.8?`Miner income is below its yearly average.`:v<1.5?`Miner income is close to normal.`:`Miner income is well above its yearly average.`,
+ cav:`Track record: very low readings have flagged miner stress near most bear-market lows. High readings are less reliable at tops. Counts new coins only (no fees).`},
+w200:{label:'200-week average',plain:'Bottom signal · long-term floor',
+ what:`The 200-week moving average is the average price over almost 4 years. It moves slowly and has acted as a long-term floor. The number shown is price ÷ that average: 1.0× = price is right on it; below 1 = price has fallen under it.`,
+ brief:(c,v)=>v<1?`${lp(v)}% below it`:`${gp(v)}% above it`,
+ calc:(c,v)=>`Price ${fu(c.price)} ÷ 200-week average ${fu(c.w200)} = ${v.toFixed(2)}×`,
+ now:(c,v)=>v<1?`Price is below its 200-week average, a zone that has historically marked deep bear-market lows.`:`Price is ${gp(v)}% above its 200-week average.`,
+ cav:`Track record: price has touched or dipped below it at major lows (2015, 2018–19, March 2020, 2022). It works as a bottom signal, not a top signal.`},
+lthb:{label:'LTH cost basis',plain:'Bottom signal · patient holders’ average cost',su:'price ÷ LTH cost basis',
+ what:`Long-term holders (LTH) are coins untouched for over about 155 days: the patient, conviction holders. Their cost basis is the average price they paid. Price rarely falls far below it, and when it has, it has been near deep bear-market lows.`,
+ brief:(c,v)=>c.price>v?`price ${gp(c.price/v)}% above`:`price ${lp(c.price/v)}% below`,
  calc:(c,v)=>`Their average cost ${fu(v)}; price ${fu(c.price)} is ${(c.price/v).toFixed(2)}× that`,
- now:(c,v)=>c.price>v?`Price is ${((c.price/v-1)*100).toFixed(1)}% above it: recent buyers are in profit.`:`Price is ${((1-c.price/v)*100).toFixed(1)}% below it: recent buyers are at a loss, which often caps rallies.`,
- cav:`Historically, bull markets hold above this line and bear markets stay below it. Free data can lag by days.`},
-lthb:{label:'LTH cost basis',plain:'Long-term holder average cost',su:'price ÷ LTH cost basis',
- what:`Long-term holders (LTH) are coins untouched for more than about 155 days: the patient, conviction holders. Their cost basis is the average price they paid. Price falling below it is rare and has marked deep bear-market lows.`,
+ now:(c,v)=>c.price>v?`Price is ${gp(c.price/v)}% above their average cost.`:`Price is below their average cost, historically a deep-bear zone.`,
+ cav:`This line moves slowly, so it works as a floor reference for the whole cycle. Free data can lag by days.`},
+pi:{label:'Pi Cycle',plain:'Top signal · cycle-top warning',
+ what:`A famous top warning. It compares a fast average (111 days) with a slow one (twice the 350-day average). When the fast line crosses above the slow line, it has flagged the cycle top within days (2013, 2017, 2021). The number is fast ÷ slow: 1.0 = the signal.`,
+ brief:(c,v)=>v>=1?'signal active':`${lp(v)}% below trigger`,
+ calc:(c,v)=>`111-day average ${fu(c.p111)} ÷ (2 × 350-day average ${fu(c.p350)} = ${fu(2*c.p350)}) = ${v.toFixed(2)}`,
+ now:(c,v)=>v>=1?`Signal active: the fast line is above the slow line, which has marked past cycle tops.`:`The fast line is ${lp(v)}% below the slow line, so there’s no top signal.`,
+ cav:`Only a handful of past examples, and it only warns about tops (never bottoms). Treat it as one clue, not a guarantee.`},
+sthb:{label:'STH cost basis',plain:'Bull or bear? · recent buyers’ average cost',su:'price ÷ STH cost basis',
+ what:`Short-term holders (STH) are coins held under about 155 days, mostly recent buyers who react to price swings. Their cost basis is the average price they paid. Price above it = recent buyers are in profit (bullish); below it = they’re underwater and tend to sell rallies (bearish).`,
+ brief:(c,v)=>c.price>v?`price ${gp(c.price/v)}% above`:`price ${lp(c.price/v)}% below`,
  calc:(c,v)=>`Their average cost ${fu(v)}; price ${fu(c.price)} is ${(c.price/v).toFixed(2)}× that`,
- now:(c,v)=>c.price>v?`Price is ${((c.price/v-1)*100).toFixed(0)}% above their average cost.`:`Price is below their average cost, historically a deep-bear, capitulation zone.`,
- cav:`This line moves slowly, so it works as a floor reference for the whole cycle.`},
-sthm:{label:'STH MVRV',plain:'Short-term holder profit/loss',
- what:`Same idea as MVRV, but only for short-term holders: today’s price divided by what recent buyers paid on average. 1.0 is the key break-even line. For example, 1.13 means recent buyers are sitting on about 13% profit.`,
- calc:(c,v)=>`Reported value ${v.toFixed(2)}`+(c.sth?` (price ÷ STH cost basis today ≈ ${(c.price/c.sth).toFixed(2)})`:''),
- now:(c,v)=>v>=1?`Recent buyers are up about ${gp(v)}% on average.`:`Recent buyers are down about ${lp(v)}% on average.`,
- cav:`Near 1.0 is where price often finds support in bull markets or resistance in bear markets; well above 1.4 gives recent buyers a big incentive to sell. Free data can lag, so it may differ slightly from the live ratio.`},
-sths:{label:'STH SOPR',plain:'Are recent buyers selling at a profit?',
- what:`SOPR = the price coins were sold at ÷ the price they were bought at, for coins moved that day. This version covers short-term holders only. Above 1 = selling at a profit; below 1 = selling at a loss.`,
- calc:(c,v)=>`Reported value ${v.toFixed(3)}`,
- now:(c,v)=>v>1.03?`Recent buyers are taking profits.`:v<.97?`Recent buyers are selling at a loss (capitulation-like pressure).`:`Roughly break-even selling.`,
- cav:`In uptrends it often dips to about 1.0 and bounces (buyers defend break-even); in downtrends 1.0 often acts as a ceiling.`}};
+ now:(c,v)=>c.price>v?`Price is ${gp(c.price/v)}% above it: recent buyers are in profit.`:`Price is ${lp(c.price/v)}% below it: recent buyers are at a loss, which often caps rallies.`,
+ cav:`Track record: bull phases have held above this line and bear phases have stayed below it. Reclaiming it often coincides with a trend change. Free data can lag by days.`},
+mayer:{label:'Mayer multiple',plain:'Price vs its 200-day average',
+ what:`The 200-day moving average is the average closing price over the last 200 days, the classic line between an uptrend and a downtrend. The Mayer multiple is price ÷ that average: 1.0× = right on it; above 1 = price is stretched above its long-term average; below 1 = price is discounted.`,
+ brief:(c,v)=>v<1?`${lp(v)}% below average`:`${gp(v)}% above average`,
+ calc:(c,v)=>`Price ${fu(c.price)} ÷ 200-day average ${fu(c.ma200)} = ${v.toFixed(2)}×`,
+ now:(c,v)=>v<.8?`Price is far below its 200-day average, historically a deep-discount zone.`:v<1?`Price is ${lp(v)}% below its 200-day average (downtrend).`:v<1.5?`Price is ${gp(v)}% above its 200-day average, a normal range in an uptrend.`:v<2.4?`Price is ${gp(v)}% above its 200-day average: getting stretched.`:`Price is ${gp(v)}% above its 200-day average: very stretched.`,
+ cav:`Simple and easy to read, but it is a price-only measure. Readings above about 2.4 have been very stretched historically, though recent cycle peaks have been lower. Below 0.8 has marked discount zones.`}};
+SPEC.w20={label:'20-week average',plain:'Bull or bear? · medium-term trend line',su:'price ÷ 20-week average',
+ what:`The average price over the last 20 weeks (about 5 months). Many analysts treat it as a dividing line between a bull and a bear phase: in uptrends price tends to pull back to it and bounce, and losing it for good has often come with the shift into a bear market. Its time window is close to the recent-buyer cost basis, so the two cross-check each other.`,
+ brief:(c,v)=>v<1?`${lp(v)}% below it`:`${gp(v)}% above it`,
+ calc:(c,v)=>`Price ${fu(c.price)} ÷ 20-week average ${fu(c.w20)} = ${v.toFixed(2)}×`,
+ now:(c,v)=>v<.85?`Price is far below its 20-week average: a deep downtrend.`:v<1?`Price is below its 20-week average: the medium-term trend is down.`:v<1.3?`Price is ${gp(v)}% above its 20-week average: the medium-term trend is up.`:`Price is ${gp(v)}% above its 20-week average: the uptrend is stretched.`,
+ cav:`Price has generally held above it through bull phases and stayed below it in bear phases, but it lags and has produced false breaks on sharp dips that recovered quickly. Best used together with the recent-buyer cost basis.`};
 const OPEN={};
 function renderOC(){
  if(!price)return;
  const cards=[],heat=[],now=Date.now(),x2=v=>v.toFixed(2),xx=v=>x2(v)+'×';
  const rp=lastv(OC.rp),mv=rp?price/rp:null;
- const ma200=ma&&lastv(ma.m200),p111=ma&&lastv(ma.p111),p350=ma&&lastv(ma.p350);
+ const w20=ma&&lastv(ma.w20),ma200=ma&&lastv(ma.m200),w200=ma&&lastv(ma.w200),p111=ma&&lastv(ma.p111),p350=ma&&lastv(ma.p350);
  let pu=null;
  if(hist.length>366){const sb=t=>t<Date.UTC(2012,10,28)?50:t<Date.UTC(2016,6,9)?25:t<Date.UTC(2020,4,11)?12.5:t<Date.UTC(2024,3,20)?6.25:3.125;
   pu=price*sb(now)/(hist.slice(-365).reduce((s,p)=>s+p[1]*sb(p[0]),0)/365)}
- const sth=lastv(OC.sth),lth=lastv(OC.lth),zv=rp&&OC.sd?OC.sup*(price-rp)/OC.sd:null;
- const C={price,rp,mv,ma200,p111,p350,pu,sth,lth,zv,pl:pl(now),sd:OC.sd,sup:OC.sup};
- const add=(k,v,f,th,names,hot,lv)=>{
+ const sth=lastv(OC.sth),lth=lastv(OC.lth),pi=p111&&p350?p111/(2*p350):null;
+ const C={price,rp,mv,ma200,w200,w20,p111,p350,pu,sth,lth,pl:pl(now)};
+ const add=(k,v,f,th,names,hot,lv,cols)=>{
   if(v==null||!isFinite(v)){cards.push({k,v:null,fv:'—',z:'no data yet',i:-1});return}
-  const l=lv==null?v:lv,i=lvl(l,th);cards.push({k,v,fv:f(v),z:names[i],i,th,names,lv:l});if(hot)heat.push(i)};
- const E=['Deep below it','Below it','Just above it','Above it','Well above it'],X=['Price below it','Just above it','Healthy gap','Extended','Very extended'],H=['Undervalued','Neutral','Warming','Hot','Overheated'];
- add('mvrv',mv,x2,[1,2,3,3.7],['Undervalued','Healthy','Warm','Hot','Overheated'],1);
- add('z',zv,x2,[0,2,4,6],H,1);
- add('nupl',mv?1-1/mv:null,x2,[0,.25,.5,.75],['Capitulation','Hope / fear','Optimism','Belief','Euphoria'],1);
- add('rp',rp,fu,[1,1.5,2.5,4],X,0,mv);
- add('mayer',ma200?price/ma200:null,xx,[.8,1.2,1.8,2.4],['Deep value','Neutral','Warm','Hot','Overheated'],1);
- add('puell',pu,x2,[.5,1.2,2.5,4],['Miner stress','Normal','Warm','Hot','Overheated'],1);
- add('pi',p111&&p350?p111/(2*p350):null,x2,[.5,.8,.95,1],['Cold','Neutral','Warming','Near top signal','Top signal'],1);
- add('pl',price/pl(now),xx,[.6,1,1.6,2.4],['Deep value','Below fair','Above fair','Hot','Overheated'],1);
- add('sthb',sth,fu,[.8,1,1.15,1.4],E,0,sth?price/sth:null);
- add('lthb',lth,fu,[1,1.5,2.5,4],X,0,lth?price/lth:null);
- add('sthm',OC.sthMvrv&&OC.sthMvrv[1],x2,[.85,1,1.2,1.5],['Deep loss','At a loss','Near break-even','In profit','Very profitable'],0);
- add('sths',OC.sthSopr&&OC.sthSopr[1],v=>v.toFixed(3),[.97,1,1.03,1.1],['Heavy loss selling','Selling at a loss','Near break-even','Profit taking','Heavy profit taking'],0);
+  const l=lv==null?v:lv,i=lvl(l,th);cards.push({k,v,fv:f(v),z:names[i],i,th,names,lv:l,cols:cols||COL});if(hot)heat.push(i)};
+ const TR=['#4aa3ff','#ff9f43','#3ddc97','#f1c40f'];
+ add('mvrv',mv,x2,[1,1.5,2.5,3.5],W5,1);
+ add('pl',price/pl(now),xx,[.5,.8,1.4,2.2],W5,1);
+ add('mayer',ma200?price/ma200:null,xx,[.8,1,1.5,2.4],W5,1);
+ add('puell',pu,x2,[.5,.8,1.5,3],W5,1);
+ add('w200',w200?price/w200:null,xx,[1,1.5,3,4.5],W5,1);
+ add('lthb',lth,fu,[1,1.3,2.2,3.5],W5,0,lth?price/lth:null);
+ add('pi',pi,x2,[.9,1],['No signal','Warning','Top signal'],0,null,['#8a94a0','#ff9f43','#ff5c5c']);
+ add('sthb',sth,fu,[.85,1,1.3],['Capitulating','Bearish','Bullish','Stretched'],0,sth?price/sth:null,TR);
+ add('w20',w20?price/w20:null,xx,[.85,1,1.3],['Capitulating','Bearish','Bullish','Stretched'],0,null,TR);
+ const pcs={},pc=(k,a,v)=>{if(a&&a.length>50&&v!=null&&isFinite(v))pcs[k]=pctRank(a,v)};
+ pc('mvrv',OC.mvh,mv);pc('pl',PCT.pl,price/pl(now));pc('mayer',PCT.mayer,ma200?price/ma200:null);pc('puell',PCT.puell,pu);pc('w200',PCT.w200,w200?price/w200:null);
+ const pd=k=>Math.max(1,Math.min(99,Math.round(pcs[k]*100))),pp=pcs.pl!=null?pd('pl'):null;
  const detail=c=>{const s=SPEC[c.k];let h='<div class="dt"><p><b>What it is</b><br>'+s.what+'</p>';
   if(c.v==null)return h+'<p>No data loaded yet for this one. See the note at the bottom of this section.</p></div>';
-  h+='<p><b>Why it’s at '+c.fv+'</b><br>'+s.calc(C,c.v)+'<br>'+s.now(C,c.v)+'</p><p><b>The scale</b>'+(s.su?' <span style="color:var(--mut)">('+s.su+', now '+xx(c.lv)+')</span>':'')+'</p><div class="chips">';
-  const th=c.th;for(let j=0;j<=th.length;j++){const r=j==0?'&lt; '+th[0]:j==th.length?'≥ '+th[j-1]:th[j-1]+'–'+th[j];
-   h+='<span class="chip" style="'+(j==c.i?'background:'+COL[j]+';color:#0b0d10;border-color:'+COL[j]:'color:'+COL[j]+';border-color:'+COL[j])+'">'+r+' · '+c.names[j]+'</span>'}
+  h+='<p><b>Why it’s at '+c.fv+'</b><br>'+s.calc(C,c.v)+'<br>'+s.now(C,c.v)+'</p>'+(pcs[c.k]!=null?'<p><b>History check</b><br>'+rare(pd(c.k),'since 2012')+'</p>':'')+'<p><b>The scale</b>'+(s.su?' <span style="color:var(--mut)">('+s.su+', now '+xx(c.lv)+')</span>':'')+'</p><div class="chips">';
+  const th=c.th;for(let j=0;j<=th.length;j++){const r=j==0?'&lt; '+th[0]:j==th.length?'≥ '+th[j-1]:th[j-1]+'–'+th[j],q=c.cols[j];
+   h+='<span class="chip" style="'+(j==c.i?'background:'+q+';color:#0b0d10;border-color:'+q:'color:'+q+';border-color:'+q)+'">'+r+' · '+c.names[j]+'</span>'}
   return h+'</div><p class="cv">'+s.cav+'</p></div>'};
- const cd=c=>{const o=OPEN[c.k];return '<div class="card'+(o?' open':'')+'" data-k="'+c.k+'"><div class="l">'+SPEC[c.k].label+' <span style="color:var(--mut)">'+(o?'▴':'▾')+'</span></div><div class="pl">'+SPEC[c.k].plain+'</div><div class="v">'+c.fv+'</div><div class="zn" style="color:'+(c.i<0?'#8a94a0':COL[c.i])+'">'+c.z+'</div>'+(o?detail(c):'')+'</div>'};
- const G=[['Valuation: are holders in profit?',0,4],['Price models: is price stretched?',4,8],['Short-term vs long-term holders',8,12]];
- $('ocg').innerHTML=G.map(([t,a,b])=>'<div class="sub">'+t+'</div><div class="grid">'+cards.slice(a,b).map(cd).join('')+'</div>').join('')+(sth||lth?'':'<div class="key">Short/long-term holder data is not loading right now (BGeometrics feed blocked or rate-limited).</div>');
+ const cd=c=>{const o=OPEN[c.k],s=SPEC[c.k];return '<div class="card'+(o?' open':'')+'" data-k="'+c.k+'"><div class="l">'+s.label+' <span style="color:var(--mut)">'+(o?'▴':'▾')+'</span></div><div class="pl">'+s.plain+'</div><div class="v">'+c.fv+'</div><div class="zn" style="color:'+(c.i<0?'#8a94a0':c.cols[c.i])+'">'+c.z+'</div><div class="br">'+(c.v==null?'':s.brief(C,c.v))+'</div>'+(o?detail(c):'')+'</div>'};
+ const G=[['Cheap or expensive? (drives the score)',0,5],['Bottom signal and top signal',5,7],['Bull or bear? (trend)',7,9]];
+ $('ocg').innerHTML=G.map(([t,a,b])=>'<div class="sub">'+t+'</div><div class="grid">'+cards.slice(a,b).map(cd).join('')+'</div>').join('')+(sth||lth?'':'<div class="key">Holder cost-basis data is not loading right now (BGeometrics feed blocked or rate-limited).</div>');
  if(heat.length>=3){
-  const sc=Math.round(heat.reduce((s,i)=>s+i,0)/heat.length/4*100);
-  $('ocsc').textContent=sc+'/100';$('gm').style.left=sc+'%';
-  $('ochl').textContent=sc<20?'Deep value':sc<40?'Early / cool':sc<60?'Mid-cycle':sc<80?'Warm / late':'Overheated';
-  const up2=ma200?price>ma200:null,sb2=sth?price>sth:null;
-  const tr=up2==null?'mixed':(up2&&sb2!==false)?'up':(!up2&&sb2!==true)?'down':'mixed';
-  const ph={up:['Early bull / recovery','Mid-cycle bull','Late bull / overheating'],down:['Bear / accumulation zone','Mid-cycle pullback or bear','Topping / bear starting'],mixed:['Bottoming / transition','Transition','Topping risk']}[tr][sc<35?0:sc<65?1:2];
-  $('ocph').textContent='Reading: '+ph+' (indicator-based, not a prediction)';
-  $('octr').textContent='Trend: '+tr+(up2==null?'':' · price '+(up2?'above':'below')+' 200D MA')+(sb2==null?'':' · '+(sb2?'above':'below')+' STH cost basis')+' · '+heat.length+' heat metrics';
+  const sc=Math.round(heat.reduce((s,i)=>s+i,0)/heat.length/4*100),t=sc<20?0:sc<40?1:sc<60?2:sc<80?3:4;
+  $('ochl').textContent=W5[t];$('ochl').style.color=COL[t];$('gm').style.left=sc+'%';
+  const vs=[ma200?price>ma200:null,w20?price>w20:null,sth?price>sth:null].filter(x=>x!==null),na=vs.filter(Boolean).length;
+  const tr=!vs.length?'mixed':na===vs.length?'up':na===0?'down':'mixed';
+  const PH=[['Early bull (recovery)','Bottoming','Late bear'],['Early bull','Accumulation','Mid bear'],['Mid bull','Mid-cycle (choppy)','Early bear'],['Late bull','Late bull (stalling)','Early bear'],['Late bull (blow-off risk)','Cycle top zone','Early bear (top may be in)']];
+  $('ocph').textContent=PH[t][tr==='up'?0:tr==='mixed'?1:2];
+  const al=[];if(pi>=1)al.push('⚠ Pi Cycle top signal is active');if(w200&&price<w200)al.push('Bottom signal: price is below the 200-week average');if(lth&&price<lth)al.push('Bottom signal: price is below the long-term holder cost basis');
+  const lv5=['mvrv','pl','mayer','puell','w200','lthb'].map(k=>cards.find(c=>c.k===k)).filter(c=>c&&c.v!=null).map(c=>c.i);
+  if(pi!=null&&pi>=.9)lv5.push(pi>=1?4:3);
+  const cnt=[0,0,0,0,0];lv5.forEach(i=>cnt[i]++);
+  $('octl').innerHTML=W5.map((w,j)=>'<span class="chip" style="color:'+COL[j]+';border-color:'+COL[j]+(cnt[j]?';background:'+COL[j]+'33':';opacity:.4')+'">'+w+' · '+cnt[j]+'</span>').join('');
+  const mj=cnt.indexOf(Math.max(...cnt)),VERD=['Oversold','Leaning oversold','Neutral / choppy','Getting overheated','Overbought'];
+  $('ocvt').textContent='Overall: '+VERD[t]+'. '+cnt[mj]+' of '+lv5.length+' indicators read '+W5[mj]+'; the trend is '+tr+'.';
+  const ks=Object.keys(pcs).map(k=>pcs[k]).sort((a,b)=>a-b);
+  if(ks.length){const md=Math.max(1,Math.min(99,Math.round(ks[(ks.length-1)>>1]*100)));
+   $('ocpc').textContent='Valuation percentile: Bitcoin is pricier than '+md+'% of days since 2012 (median of '+ks.length+' indicators).'+(pp==null?'':' Versus its power-law trend: '+rare(pp,'since 2012'))}
+  if(PCT.pl&&PCT.pl.length>200){const f=pl(now);
+   $('ocpb').innerHTML='<span class="chip" style="background:#e6e8ea;color:#0b0d10;border-color:#e6e8ea">Now · '+fu(price)+(pp==null?'':' · percentile '+pp)+'</span>'+[.05,.25,.5,.75,.95].map(q=>'<span class="chip" style="color:#8fa3b5;border-color:#8fa3b5">'+Math.round(q*100)+'% · '+fu(f*quant(PCT.pl,q))+'</span>').join('')}
+  $('octr').textContent='Trend: '+tr+' · price above '+na+' of '+vs.length+' trend lines (200-day, 20-week, recent-buyer cost basis) · Score '+sc+'/100'+(al.length?' · '+al.join(' · '):'');
  }
- $('ocn').textContent='Realized price as of '+(OC.cmAt?dstr(OC.cmAt):'—')+' (Coin Metrics, live price applied). STH/LTH data as of '+(OC.sth.length?dstr(OC.sth[OC.sth.length-1][0]):'unavailable')+' (BGeometrics free data can lag about a week and is capped at 15 requests/day, so it refreshes at most every 8h). Zones are common rules of thumb.';
+ $('ocn').textContent='Realized price as of '+(OC.cmAt?dstr(OC.cmAt):'—')+' (Coin Metrics, live price applied). Holder cost basis as of '+(OC.sth.length?dstr(OC.sth[OC.sth.length-1][0]):'unavailable')+' (BGeometrics free data can lag about a week and is capped at 15 requests/day, so it refreshes at most every 8h). Zones are rules of thumb from past cycles.';
 }
 $('ocg').addEventListener('click',e=>{const c=e.target.closest('.card[data-k]');if(!c)return;OPEN[c.dataset.k]=!OPEN[c.dataset.k];renderOC()});
 function ocChart(){
