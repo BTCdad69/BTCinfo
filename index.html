@@ -36,6 +36,7 @@ canvas{width:100%;height:300px;display:block;touch-action:pan-y;user-select:none
 summary{cursor:pointer;color:var(--ac)}
 .sub{margin:12px 0 2px;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 @media(max-width:639px){#ocg .grid .card:last-child:nth-child(odd){grid-column:1/-1}}
+.xc{cursor:pointer}.card.xo{grid-column:1/-1}.xp{margin-top:8px;border-top:1px solid var(--bd);padding-top:8px;cursor:default}.xb{margin-bottom:6px}.xb button:first-child{margin-left:0}.xch{color:var(--mut)}
 .hl{font-size:14px;font-weight:600;color:var(--tx)}.hl b{color:var(--ac)}
 .tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px;display:inline-block;vertical-align:1px}.tag.up{background:#3ddc9733;color:#3ddc97}.tag.dn{background:#ff5c5c33;color:#ff5c5c}.tag.nt{background:#8a94a033;color:#8a94a0}
 .tg{opacity:.4}.tg.on{opacity:1;border-color:currentColor}
@@ -53,12 +54,12 @@ summary{cursor:pointer;color:var(--ac)}
 
 <div class="grid">
 <div class="card"><div class="l">Market cap</div><div class="v" id="mc">—</div></div>
-<div class="card"><div class="l">Sats per $1</div><div class="v" id="sats">—</div></div>
+<div class="card xc" data-x="sats"><div class="l">Sats per $1 <span class="xch">▾</span></div><div class="v" id="sats">—</div><div class="xp" style="display:none"><div class="xb"><button class="xr on" data-r="30">1M</button><button class="xr" data-r="90">3M</button><button class="xr" data-r="365">1Y</button></div><canvas style="height:170px"></canvas><div class="key xk"></div></div></div>
 <div class="card"><div class="l">Next-block fee (sat/vB)</div><div class="v" id="fee1">—</div></div>
 <div class="card"><div class="l">1-hour fee (sat/vB)</div><div class="v" id="fee2">—</div></div>
-<div class="card"><div class="l">vs power law</div><div class="v" id="dev">—</div></div>
+<div class="card xc" data-x="dev"><div class="l">vs power law <span class="xch">▾</span></div><div class="v" id="dev">—</div><div class="xp" style="display:none"><div class="xb"><button class="xr on" data-r="30">1M</button><button class="xr" data-r="90">3M</button><button class="xr" data-r="365">1Y</button></div><canvas style="height:170px"></canvas><div class="key xk"></div></div></div>
 <div class="card"><div class="l">Power-law fair value</div><div class="v" id="plv">—</div></div>
-<div class="card"><div class="l">Fear &amp; Greed</div><div class="v" id="fg">—</div></div>
+<div class="card xc" data-x="fg"><div class="l">Fear &amp; Greed <span class="xch">▾</span></div><div class="v" id="fg">—</div><div class="xp" style="display:none"><div class="xb"><button class="xr on" data-r="30">1M</button><button class="xr" data-r="90">3M</button><button class="xr" data-r="365">1Y</button></div><canvas style="height:170px"></canvas><div class="key xk"></div></div></div>
 <div class="card"><div class="l">Days since genesis</div><div class="v" id="dg">—</div></div>
 </div>
 
@@ -68,7 +69,7 @@ summary{cursor:pointer;color:var(--ac)}
 <div class="grid">
 <div class="card"><div class="l">Block height</div><div class="v" id="bh">—</div></div>
 <div class="card"><div class="l">Mempool size</div><div class="v" id="msz">—</div></div>
-<div class="card"><div class="l">Hashrate (3d)</div><div class="v" id="hr">—</div></div>
+<div class="card xc" data-x="hr"><div class="l">Hashrate (3d) <span class="xch">▾</span></div><div class="v" id="hr">—</div><div class="xp" style="display:none"><div class="xb"><button class="xr on" data-r="30">1M</button><button class="xr" data-r="90">3M</button><button class="xr" data-r="365">1Y</button></div><canvas style="height:170px"></canvas><div class="key xk"></div></div></div>
 <div class="card"><div class="l">Next difficulty adj.</div><div class="v" id="da">—</div></div>
 </div>
 
@@ -78,6 +79,7 @@ summary{cursor:pointer;color:var(--ac)}
 <div style="margin:0 0 6px"><button class="rb" data-r="1d" style="margin-left:0">1D</button><button class="rb" data-r="1w">1W</button><button class="rb" data-r="1m">1M</button><button class="rb" data-r="3m">3M</button><button class="rb" data-r="1y">1Y</button><button class="rb" data-r="5y">5Y</button><button class="rb on" data-r="all">ALL</button></div>
 <div id="usdctl" style="margin:0 0 6px"><button class="tg on" data-k="d50" style="color:#4aa3ff;margin-left:0">50D</button><button class="tg on" data-k="d200" style="color:#b07cff">200D</button><button class="tg on" data-k="w200" style="color:#2ecc71">200W</button><button class="tg on" data-k="pl" style="color:#e6e8ea">Power law</button><button class="tg on" data-k="bd" style="color:#8fa3b5">5–95% band</button></div>
 <canvas id="ch"></canvas>
+<div class="key" id="mav" style="margin-top:6px"></div>
 <div class="key" id="key"></div>
 </div>
 
@@ -238,7 +240,7 @@ function defView(s){const n=Date.now();
 function draw(){
  const c=$('ch'),dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;
  c.width=W*dpr;c.height=H*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,W,H);
- const key=$('key'),s=series(),um=mode==='usd';
+ const key=$('key'),s=series(),um=mode==='usd';if(!um)$('mav').innerHTML='';
  if(!s){const e=um?errs[range]:gerr[range];
   key.textContent=e?(!um&&(range==='5y'||range==='all')?'Gold history past 1 year isn’t available on the free feed.':'Unavailable (rate limit?). Try again shortly.'):'Loading…';return}
  if(!V[mode])V[mode]=defView(s);
@@ -271,6 +273,10 @@ function draw(){
  ln(win(s.pts),um?'#f7931a':'#d4af37',1.6);
  x.restore();
  if(um&&now>t0&&now<t1&&t1-now>2*D){x.strokeStyle='#8a94a0';x.setLineDash([2,3]);x.beginPath();x.moveTo(X(now),PT);x.lineTo(X(now),PT+ph);x.stroke();x.setLineDash([])}
+ if(um){const at=q=>{for(let i=q.length-1;i>=0;i--)if(q[i][0]<=t1)return q[i][1];return null},parts=[];
+  if(ma)[['d50','m50','#4aa3ff','50D'],['d200','m200','#b07cff','200D'],['w200','w200','#2ecc71','200W']].forEach(([k,m,col,l])=>{if(T[k]){const v=at(ma[m]);if(v!=null)parts.push('<span style="color:'+col+'">'+l+' '+fu(v)+'</span>')}});
+  if(T.pl)parts.push('<span style="color:#e6e8ea">Power law '+fu(pl(Math.min(t1,now)))+'</span>');
+  $('mav').innerHTML=parts.join(' &nbsp;·&nbsp; ')}else $('mav').innerHTML='';
  key.textContent=HINT+(um?'':' · gold oz per BTC: '+s.pts[s.pts.length-1][1].toFixed(1)+' (via PAXG)');
 }
 const cv=$('ch'),ptr=new Map();let ld=0,mv=0,lt=0;
@@ -476,6 +482,39 @@ function ocChart(){
 }
 document.querySelectorAll('.ocr').forEach(b=>b.onclick=()=>{ocR=b.dataset.r;document.querySelectorAll('.ocr').forEach(q=>q.className='ocr'+(q===b?' on':''));ocChart()});
 addEventListener('resize',ocChart);
+const cmp=v=>v>=1e6?+(v/1e6).toPrecision(3)+'M':v>=1e3?+(v/1e3).toPrecision(3)+'k':+v.toPrecision(3);
+const XM={
+ hr:{u:v=>Math.round(v)+' EH/s',load:async()=>(await j('https://mempool.space/api/v1/mining/hashrate/1y')).hashrates.map(h=>[h.timestamp>1e12?h.timestamp:h.timestamp*1e3,h.avgHashrate/1e18])},
+ fg:{u:v=>''+Math.round(v),ref:50,load:async()=>(await j('https://api.alternative.me/fng/?limit=365')).data.map(o=>[+o.timestamp*1e3,+o.value]).reverse()},
+ dev:{u:v=>v.toFixed(2)+'×',ref:1,f:(p,t)=>p/pl(t)},
+ sats:{u:v=>Math.round(v).toLocaleString('en-US'),f:p=>1e8/p}};
+const XS={};
+async function xLoad(k){const m=XM[k];
+ if(m.f){await histP;if(!hist.length)throw 0;const n=Date.now(),a=hist.map(p=>[p[0],m.f(p[1],p[0])]);if(price)a.push([n,m.f(price,n)]);return a}
+ return m.load()}
+function xCard(k){return document.querySelector('.xc[data-x="'+k+'"]')}
+function xDraw(k){const card=xCard(k),st=XS[k];if(!card||!st||!card.classList.contains('xo')||!st.data)return;
+ const c=card.querySelector('canvas'),kk=card.querySelector('.xk'),dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;
+ c.width=W*dpr;c.height=H*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,W,H);
+ const a=st.data,t1=a[a.length-1][0],v=a.filter(p=>p[0]>=t1-st.r*D);
+ if(v.length<2){kk.textContent='Not enough data for this range.';return}
+ const ys=v.map(p=>p[1]),lo0=Math.min(...ys),hi0=Math.max(...ys),pd=(hi0-lo0||hi0*.02||1)*.08,lo=lo0-pd,hi=hi0+pd,L=40,R=6,T0=6,B=16,pw=W-L-R,ph=H-T0-B,t0=v[0][0];
+ const X=t=>L+(t-t0)/(t1-t0)*pw,Y=q=>T0+(1-(q-lo)/(hi-lo))*ph;
+ x.font='10px monospace';x.lineWidth=1;
+ for(let i=0;i<=3;i++){const q=lo+(hi-lo)*i/3,y=Y(q);x.strokeStyle='#232a33';x.beginPath();x.moveTo(L,y);x.lineTo(W-R,y);x.stroke();x.fillStyle='#8a94a0';x.fillText(cmp(q),2,y+3)}
+ for(let i=0;i<=2;i++){const t=t0+(t1-t0)*i/2;x.fillStyle='#8a94a0';x.fillText(new Date(t).toLocaleDateString([],{month:'short',day:'numeric'}),Math.min(Math.max(X(t)-16,L),W-40),H-3)}
+ const rf=XM[k].ref;if(rf!=null&&rf>lo&&rf<hi){x.strokeStyle='#8a94a0';x.setLineDash([3,3]);x.beginPath();x.moveTo(L,Y(rf));x.lineTo(W-R,Y(rf));x.stroke();x.setLineDash([])}
+ x.beginPath();x.strokeStyle='#f7931a';x.lineWidth=1.6;v.forEach((p,i)=>{const px=X(p[0]),py=Y(p[1]);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();
+ const u=XM[k].u;kk.textContent='Now '+u(ys[ys.length-1])+' · high '+u(hi0)+' · low '+u(lo0)}
+async function xFetch(k){const st=XS[k],kk=xCard(k).querySelector('.xk');
+ if(!st.data||XM[k].f){kk.textContent='Loading…';try{st.data=await xLoad(k)}catch(e){st.data=null;kk.textContent='Unavailable (feed blocked or rate-limited). Close and tap again to retry.';return}}
+ xDraw(k)}
+document.addEventListener('click',e=>{const c=e.target.closest('.xc');if(!c||e.target.closest('.xp'))return;
+ const k=c.dataset.x;XS[k]=XS[k]||{r:30};const o=c.classList.toggle('xo');
+ c.querySelector('.xp').style.display=o?'block':'none';c.querySelector('.xch').textContent=o?'▴':'▾';if(o)xFetch(k)});
+document.querySelectorAll('.xr').forEach(b=>b.onclick=()=>{const c=b.closest('.xc'),k=c.dataset.x;XS[k]=XS[k]||{};XS[k].r=+b.dataset.r;
+ c.querySelectorAll('.xr').forEach(q=>q.className='xr'+(q===b?' on':''));xDraw(k)});
+addEventListener('resize',()=>Object.keys(XS).forEach(xDraw));
 loadPrice();loadNet();histP=loadHist();loadNews();loadOC();
 setInterval(loadPrice,60000);setInterval(loadNet,120000);setInterval(loadNews,600000);setInterval(loadOC,108e5);
 </script></body></html>
