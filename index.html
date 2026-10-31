@@ -19,6 +19,7 @@ header{display:flex;justify-content:space-between;align-items:baseline;margin-bo
 .up{color:var(--up)}.dn{color:var(--dn)}
 .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 button{background:none;border:1px solid var(--bd);color:var(--mut);border-radius:5px;padding:3px 9px;font:inherit;font-size:12px;margin-left:4px}
+@media (pointer:coarse){button{padding:8px 10px}} /*#14 bigger tap targets on touch screens*/
 button.on{color:var(--ac);border-color:var(--ac)}
 canvas{width:100%;height:300px;display:block;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .sec{margin:14px 0 6px;color:var(--ac);font-size:12px;letter-spacing:.08em}
@@ -129,10 +130,14 @@ let hist=[],range='all',price=null,ma=null,mode='usd',histP=null;
 async function loadPrice(){
   try{
     const d=(await j('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_market_cap=true')).bitcoin;
-    price=d.usd;$('mc').textContent=big(d.usd_market_cap);
-    const c=d.usd_24h_change;$('chg').textContent=(c>=0?'▲ ':'▼ ')+c.toFixed(2)+'% (24h)';$('chg').className='l '+(c>=0?'up':'dn');
+    if(!d||!(d.usd>0))throw 0;
+    price=d.usd;$('mc').textContent=d.usd_market_cap?big(d.usd_market_cap):'—'; /*#6*/
+    const c=d.usd_24h_change;
+    if(typeof c==='number'&&isFinite(c)){$('chg').textContent=(c>=0?'▲ ':'▼ ')+c.toFixed(2)+'% (24h)';$('chg').className='l '+(c>=0?'up':'dn')}
+    else{$('chg').textContent='24h change unavailable';$('chg').className='l'}
   }catch(e){
-    try{price=(await j('https://mempool.space/api/v1/prices')).USD;$('chg').textContent='24h change unavailable'}catch(e2){$('px').textContent='unavailable';return}
+    try{const p=(await j('https://mempool.space/api/v1/prices')).USD;if(!(p>0))throw 0;price=p;$('chg').textContent='24h change unavailable';$('chg').className='l'} /*#6*/
+    catch(e2){if(!price)$('px').textContent='unavailable';return}
   }
   const now=Date.now(),f=pl(now);
   $('px').textContent=usd(price);$('plv').textContent=usd(f);
@@ -140,11 +145,12 @@ async function loadPrice(){
   $('dg').textContent=Math.floor(days(now)).toLocaleString();
   $('sats').textContent=Math.round(1e8/price).toLocaleString();
   $('upd').textContent='updated '+new Date().toLocaleTimeString();
-  draw();renderOC();
+  draw();renderOC();fetchFor(); /*#1 refresh short-range / gold chart data when stale*/
 }
 function sma(n){const o=[],w=n*D;let s=0,j=0;for(let i=0;i<hist.length;i++){s+=hist[i][1];while(hist[j][0]<=hist[i][0]-w){s-=hist[j][1];j++}if(hist[i][0]-hist[0][0]>=w*.98)o.push([hist[i][0],s/(i-j+1)])}return o}
 function calcMA(){ma={m50:sma(50),m200:sma(200),w200:sma(1400),p111:sma(111),p350:sma(350),w20:sma(140)};calcHist()}
 async function loadHalving(){try{const h=await j('https://mempool.space/api/blocks/tip/height');
+ $('bh').textContent=h.toLocaleString(); /*#12 reuse this request for block height*/
  const nxt=Math.ceil((h+1)/210000)*210000,left=nxt-h,ms=left*600000,eta=new Date(Date.now()+ms);
  $('hv').textContent=Math.floor(ms/D)+'d '+Math.floor(ms%D/36e5)+'h · '+left.toLocaleString()+' blocks';
  $('hvp').style.width=((1-left/210000)*100).toFixed(1)+'%';
@@ -154,7 +160,6 @@ async function loadPool(){
  try{const h=await j('https://mempool.space/api/v1/mining/hashrate/3d');$('hr').textContent=Math.round(h.currentHashrate/1e18)+' EH/s'}catch(e){}
  try{const a=await j('https://mempool.space/api/v1/difficulty-adjustment'),c=a.difficultyChange;$('da').textContent=(c>=0?'+':'')+c.toFixed(1)+'% · '+a.remainingBlocks.toLocaleString()+' blk'}catch(e){}}
 async function loadNet(){loadHalving();loadPool();
-  try{$('bh').textContent=(await j('https://mempool.space/api/blocks/tip/height')).toLocaleString()}catch(e){}
   try{const f=await j('https://mempool.space/api/v1/fees/recommended');$('fee1').textContent=f.fastestFee;$('fee2').textContent=f.hourFee}catch(e){}
   try{const f=(await j('https://api.alternative.me/fng/')).data[0];$('fg').textContent=f.value+' · '+f.value_classification}catch(e){}
 }
@@ -189,43 +194,53 @@ function sent(h){h=h.toLowerCase();let s=0;
  if(MACS.test(h)){const u=UPV.test(h),d=DNV.test(h);if(u&&!d){s-=2;h=h.replace(UPG,' ')}else if(d&&!u){s+=2;h=h.replace(DNG,' ')}}
  for(const[re,w]of LEX){const m=re.exec(h);if(m)s+=NEGW.test(h.slice(Math.max(0,m.index-28),m.index))?-w:w}
  return s>=1?'up':s<=-1?'dn':'nt'}
-const merge=(lists,re)=>{const seen=new Set(),o=[];lists.forEach(a=>(a||[]).forEach(i=>{const k=i.t.toLowerCase().slice(0,60);if(!seen.has(k)&&re.test(i.t)){seen.add(k);o.push(i)}}));return o.sort((a,b)=>b.d-a.d).slice(0,15)};
+const merge=(lists,re)=>{const seen=new Set(),o=[];lists.forEach(a=>(a||[]).forEach(i=>{if(!i||typeof i.t!=='string'||!i.t)return; /*#3*/const k=i.t.toLowerCase().slice(0,60);if(!seen.has(k)&&re.test(i.t)){seen.add(k);o.push(i)}}));return o.sort((a,b)=>b.d-a.d).slice(0,15)};
 function renderNews(){
  const box=$('news'),L=NEWS[nTab];box.textContent='';$('nsm').textContent='';
  $('nst').textContent=Object.keys(NS).length?'Sources: '+Object.keys(NS).map(k=>k+(NS[k]?' ✓':' ✗')).join(' · ')+' · Tags are keyword guesses from headlines only':'';
  if(!L){box.textContent='Loading…';return}
  if(!L.length){box.textContent='No headlines loaded. The sources may be blocked or rate-limited in your browser.';return}
  const cnt={up:0,dn:0,nt:0};
- L.forEach(i=>{const a=document.createElement('a');a.href=i.l;a.target='_blank';a.rel='noopener';i.v=i.v||sent(i.t);cnt[i.v]++;
+ L.forEach(i=>{if(!/^https?:\/\//i.test(i.l||''))return; /*#4 only http(s) links*/
+  const a=document.createElement('a');a.href=i.l;a.target='_blank';a.rel='noopener';i.v=i.v||sent(i.t);cnt[i.v]++;
   const tg=document.createElement('span');tg.className='tag '+i.v;tg.textContent={up:'Bullish',dn:'Bearish',nt:'Neutral'}[i.v];a.appendChild(tg);a.appendChild(document.createTextNode(i.t));
   const s=document.createElement('small');s.textContent=i.s+(i.d>1e11?' · '+i.d.toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'');
   a.appendChild(document.createElement('br'));a.appendChild(s);box.appendChild(a)});
  $('nsm').textContent=cnt.up+' bullish · '+cnt.dn+' bearish · '+cnt.nt+' neutral'}
 async function loadNews(){
+ const ok=a=>!!(a&&a.length); /*#11*/
  const[g,h,c]=await Promise.all([gdelt('bitcoin sourcelang:english'),hn('bitcoin'),cc()]);
- let r=null;if(!(g&&g.length)&&!(h&&h.length)&&!(c&&c.length))r=await Promise.all(['https://cointelegraph.com/rss','https://www.coindesk.com/arc/outboundfeeds/rss/'].map(rss));
- NEWS.btc=merge([g,h,c,...(r||[])],BTC_RE);NS.GDELT=g!==null;NS['Hacker News']=h!==null;NS.CryptoCompare=c!==null;renderNews();
+ let r=null;if(!ok(g)&&!ok(h)&&!ok(c))r=await Promise.all(['https://cointelegraph.com/rss','https://www.coindesk.com/arc/outboundfeeds/rss/'].map(rss));
+ NEWS.btc=merge([g,h,c,...(r||[])],BTC_RE);NS.GDELT=ok(g);NS['Hacker News']=ok(h);NS.CryptoCompare=ok(c);renderNews();
  await sleep(6000);
  const[g2,h2]=await Promise.all([gdelt('("federal reserve" OR "interest rates" OR inflation OR "treasury yields" OR tariffs OR "jobs report" OR "central bank" OR recession) sourcelang:english'),hn('federal reserve')]);
- NEWS.mac=merge([g2,h2],MAC_RE);NS.GDELT=NS.GDELT||g2!==null;NS['Hacker News']=NS['Hacker News']||h2!==null;renderNews()}
-document.querySelectorAll('.nt').forEach(b=>b.onclick=()=>{nTab=b.dataset.n;document.querySelectorAll('.nt').forEach(q=>q.className='nt'+(q===b?' on':''));renderNews()});
+ NEWS.mac=merge([g2,h2],MAC_RE);NS.GDELT=NS.GDELT||ok(g2);NS['Hacker News']=NS['Hacker News']||ok(h2);renderNews()}
+document.querySelectorAll('button.nt').forEach(b=>b.onclick=()=>{nTab=b.dataset.n;document.querySelectorAll('button.nt').forEach(q=>q.className='nt'+(q===b?' on':''));renderNews()}); /*#8*/
 const SHORT={'1d':1,'1w':7,'1m':30,'3m':90},DAYS={'1d':1,'1w':7,'1m':30,'3m':90,'1y':365,'5y':1825};
 const intra={},pend={},errs={},gd={},gpend={},gerr={},V={usd:null,gold:null},T={d50:1,d200:1,w200:1,pl:1,bd:1};
 const PL=44,PR=6,PT=6,PB=18,HINT='Pinch to zoom · drag to pan · double-tap to reset';
 const CG='https://api.coingecko.com/api/v3/coins/';
-async function loadIntra(r){if(intra[r]||pend[r])return;pend[r]=1;
- try{intra[r]=(await j(CG+'bitcoin/market_chart?vs_currency=usd&days='+SHORT[r])).prices}catch(e){errs[r]=1}
+const INTRA_TTL=3e5,GOLD_TTL=18e5; /*#1 refresh intervals: 5 min intraday, 30 min gold*/
+async function loadIntra(r){if((intra[r]&&Date.now()-intra[r].at<INTRA_TTL)||pend[r])return;pend[r]=1;
+ const old=intra[r]&&intra[r].at;
+ try{const p=(await j(CG+'bitcoin/market_chart?vs_currency=usd&days='+SHORT[r])).prices;if(!p||!p.length)throw 0;p.at=Date.now();intra[r]=p;delete errs[r];
+  /*#1 if the view was pinned to "now", slide it forward*/
+  if(old&&range===r&&mode==='usd'&&V.usd&&V.usd[1]>=old-6e4){const dt=Date.now()-V.usd[1];if(dt>0)V.usd=[V.usd[0]+dt,V.usd[1]+dt]}
+ }catch(e){if(!intra[r])errs[r]=1}
  pend[r]=0;draw()}
-async function loadGold(r){if(gd[r]||gpend[r])return;gpend[r]=1;
+async function loadGold(r){if((gd[r]&&Date.now()-gd[r].at<GOLD_TTL)||gpend[r])return;gpend[r]=1;
+ const oe=gd[r]&&gd[r][gd[r].length-1][0];
  try{
   const pg=(await j(CG+'pax-gold/market_chart?vs_currency=usd&days='+(r==='all'?'max':DAYS[r]))).prices,now=Date.now();
+  if(!pg||!pg.length)throw 0;
   let bt;
-  if(SHORT[r])bt=intra[r]||(intra[r]=(await j(CG+'bitcoin/market_chart?vs_currency=usd&days='+SHORT[r])).prices);
+  if(SHORT[r]){if(!(intra[r]&&now-intra[r].at<INTRA_TTL)){const p=(await j(CG+'bitcoin/market_chart?vs_currency=usd&days='+SHORT[r])).prices;p.at=Date.now();intra[r]=p}bt=intra[r]}
   else{await histP;if(!hist.length)throw 0;bt=r==='all'?hist:hist.filter(p=>p[0]>=now-DAYS[r]*D)}
   const out=[];let k=0;
   for(const p of bt){while(k+1<pg.length&&pg[k+1][0]<=p[0])k++;if(pg[k][0]<=p[0]&&p[0]-pg[k][0]<3*D)out.push([p[0],p[1]/pg[k][1]])}
-  if(out.length<2)throw 0;gd[r]=out;
- }catch(e){gerr[r]=1}
+  if(out.length<2)throw 0;out.at=Date.now();gd[r]=out;delete gerr[r];
+  if(oe&&range===r&&mode==='gold'&&V.gold&&V.gold[1]>=oe-6e4){const dt=out[out.length-1][0]-V.gold[1];if(dt>0)V.gold=[V.gold[0]+dt,V.gold[1]+dt]}
+ }catch(e){if(!gd[r])gerr[r]=1}
  gpend[r]=0;draw()}
 function series(){
  if(mode==='gold'){const p=gd[range];return p?{pts:p,e0:p[0][0],e1:p[p.length-1][0]}:null}
@@ -305,7 +320,9 @@ $('b-usd').onclick=()=>setMode('usd');$('b-gold').onclick=()=>setMode('gold');
 addEventListener('resize',draw);
 
 const BAND={lo:.4,hi:2.5},PCT={},T12=Date.UTC(2012,0,1);
-const subs=t=>t<Date.UTC(2012,10,28)?50:t<Date.UTC(2016,6,9)?25:t<Date.UTC(2020,4,11)?12.5:t<Date.UTC(2024,3,20)?6.25:3.125;
+/*#7 add the 2028 halving. Date is an estimate (block 1,050,000): replace with the real date once it happens*/
+const HALV5=Date.UTC(2028,3,17);
+const subs=t=>t<Date.UTC(2012,10,28)?50:t<Date.UTC(2016,6,9)?25:t<Date.UTC(2020,4,11)?12.5:t<Date.UTC(2024,3,20)?6.25:t<HALV5?3.125:1.5625;
 const rare=(p,t)=>p<=50?(p<=15?'Only ':'')+p+'% of days '+t+' were cheaper than this.':(100-p<=15?'Only ':'')+(100-p)+'% of days '+t+' were more expensive than this.';
 const srt=a=>a.sort((x,y)=>x-y),quant=(a,q)=>a[Math.floor(q*(a.length-1))];
 const pctRank=(a,v)=>{let l=0,h=a.length;while(l<h){const m=(l+h)>>1;a[m]<=v?l=m+1:h=m}return l/a.length};
@@ -317,7 +334,7 @@ function calcHist(){try{
  PCT.puell=srt(hist.map((p,i)=>i>=365?[p[0],iss[i]/((pre[i+1]-pre[i-364])/365)]:null).filter(p=>p&&p[0]>=T12).map(p=>p[1]));
  if(PCT.pl.length>200){BAND.lo=quant(PCT.pl,.05);BAND.hi=quant(PCT.pl,.95)}
 }catch(e){}}
-const BGU='https://bitcoin-data.com/v1/',OC={rp:[],sth:[],lth:[],sd:0,sup:0,cmAt:0,sthMvrv:null,sthSopr:null};
+const BGU='https://bitcoin-data.com/v1/',OC={rp:[],sth:[],lth:[],sd:0,sup:0,cmAt:0,sthMvrv:null,sthSopr:null,done:0};
 const pr=v=>+v.toPrecision(3),fm=v=>'$'+(v>=1e6?pr(v/1e6)+'M':v>=1e3?pr(v/1e3)+'k':pr(v));
 const COL=['#4aa3ff','#3ddc97','#c8d0d8','#ff9f43','#ff5c5c'],SKIP=['d','date','day','unixTs','timestamp','time','t','metric'];
 const lvl=(v,th)=>{let i=0;while(i<th.length&&v>=th[i])i++;return i};
@@ -327,7 +344,8 @@ const dstr=t=>new Date(t).toLocaleDateString([],{month:'short',day:'numeric'});
 let ocR='4y';
 function bgRows(d){const a=Array.isArray(d)?d:(d&&d.data)||[d];
  return a.map(o=>{if(Array.isArray(o))return[+o[0],+o[1]];
-  const dt=o.d||o.date||o.day,t=dt?Date.parse(dt.length>10?dt:dt+'T00:00:00Z'):(u=>u>1e12?u:u*1e3)(+(o.unixTs||o.timestamp||o.time));
+  /*#9 Safari-safe date parsing: "YYYY-MM-DD HH:MM:SS" becomes ISO with Z*/
+  const dt=o.d||o.date||o.day,ds=String(dt||''),t=dt?Date.parse(ds.length>10?ds.replace(' ','T')+(/(Z|[+-]\d\d:?\d\d)$/.test(ds)?'':'Z'):ds+'T00:00:00Z'):(u=>u>1e12?u:u*1e3)(+(o.unixTs||o.timestamp||o.time));
   let v=o.value!==undefined?+o.value:NaN;
   if(!isFinite(v))for(const k in o)if(!SKIP.includes(k)&&isFinite(parseFloat(o[k]))){v=parseFloat(o[k]);break}
   return[t,v]}).filter(p=>isFinite(p[0])&&isFinite(p[1]))}
@@ -338,13 +356,14 @@ async function bg(path,full){const k='bg:'+path+(full?'':':l'),c=ls(k);
  catch(e){return c?c.v:null}}
 async function loadCM(){try{
  const r=(await j('https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=PriceUSD,CapMVRVCur,CapMrktCurUSD&frequency=1d&start_time=2010-07-18&page_size=10000')).data;
- const w=r.map(o=>({t:Date.parse(o.time),p:+o.PriceUSD,mv:+o.CapMVRVCur,mc:+o.CapMrktCurUSD})).filter(o=>o.p>0&&o.mv>0&&o.mc>0);
+ /*#2 trim nanosecond timestamps so Safari can parse them*/
+ const w=r.map(o=>({t:Date.parse(String(o.time).slice(0,19)+'Z'),p:+o.PriceUSD,mv:+o.CapMVRVCur,mc:+o.CapMrktCurUSD})).filter(o=>isFinite(o.t)&&o.p>0&&o.mv>0&&o.mc>0);
  if(w.length<500)throw 0;
  const m=w.reduce((s,o)=>s+o.mc,0)/w.length,L=w[w.length-1];
  OC.sd=Math.sqrt(w.reduce((s,o)=>s+(o.mc-m)**2,0)/w.length);OC.sup=L.mc/L.p;OC.cmAt=L.t;OC.rp=w.map(o=>[o.t,o.p/o.mv]);OC.mvh=srt(w.filter(o=>o.t>=T12).map(o=>o.mv));
  }catch(e){}}
 async function loadBG(){const[a,b]=await Promise.all([bg('sth-realized-price',1),bg('lth-realized-price',1)]);if(a)OC.sth=a;if(b)OC.lth=b}
-async function loadOC(){await Promise.all([loadCM(),loadBG()]);renderOC();ocChart()}
+async function loadOC(){await Promise.all([loadCM(),loadBG()]);OC.done=1;renderOC();ocChart()} /*#5*/
 const fu=v=>'$'+Math.round(v).toLocaleString('en-US'),gp=v=>((v-1)*100).toFixed(0),lp=v=>((1-v)*100).toFixed(0);
 const W5=['Oversold','Undervalued','Fair value','Cautious','Overbought'];
 const SPEC={
@@ -409,8 +428,9 @@ function renderOC(){
  const rp=lastv(OC.rp),mv=rp?price/rp:null;
  const w20=ma&&lastv(ma.w20),ma200=ma&&lastv(ma.m200),w200=ma&&lastv(ma.w200),p111=ma&&lastv(ma.p111),p350=ma&&lastv(ma.p350);
  let pu=null;
- if(hist.length>366){const sb=t=>t<Date.UTC(2012,10,28)?50:t<Date.UTC(2016,6,9)?25:t<Date.UTC(2020,4,11)?12.5:t<Date.UTC(2024,3,20)?6.25:3.125;
-  pu=price*sb(now)/(hist.slice(-365).reduce((s,p)=>s+p[1]*sb(p[0]),0)/365)}
+ /*#7 uses shared subs(); #10 time-based 365-day window instead of the last 365 rows*/
+ if(hist.length>366){const yr=hist.filter(p=>p[0]>now-365*D);
+  if(yr.length>300)pu=price*subs(now)/(yr.reduce((s,p)=>s+p[1]*subs(p[0]),0)/yr.length)}
  const sth=lastv(OC.sth),lth=lastv(OC.lth),pi=p111&&p350?p111/(2*p350):null;
  const C={price,rp,mv,ma200,w200,w20,p111,p350,pu,sth,lth,pl:pl(now)};
  const add=(k,v,f,th,names,hot,lv,cols)=>{
@@ -458,6 +478,8 @@ function renderOC(){
   if(PCT.pl&&PCT.pl.length>200){const f=pl(now);
    $('ocpb').innerHTML='<span class="chip" style="background:#e6e8ea;color:#0b0d10;border-color:#e6e8ea">Now · '+fu(price)+(pp==null?'':' · power-law percentile '+pp)+'</span>'+[.05,.25,.5,.75,.95].map(q=>'<span class="chip" style="color:#8fa3b5;border-color:#8fa3b5">'+'Trend '+Math.round(q*100)+'% · '+fu(f*quant(PCT.pl,q))+'</span>').join('')}
   $('octr').textContent='Trend: '+tr+' (above '+na+' of '+vs.length+': 200-day, 20-week, STH cost basis) · Score '+sc+'/100'+(al.length?' · '+al.join(' · '):'');
+ }else if(OC.done){ /*#5 don't stay on "loading…" forever*/
+  $('ochl').textContent='Not enough data';$('ochl').style.color='';$('ocph').textContent=heat.length+' of 5 score indicators loaded (feeds blocked or rate-limited?)';
  }
  $('ocn').textContent='Realized price: '+(OC.cmAt?dstr(OC.cmAt):'—')+' (Coin Metrics). Holder cost basis: '+(OC.sth.length?dstr(OC.sth[OC.sth.length-1][0]):'unavailable')+' (BGeometrics free tier, up to ~1 week old, refreshes every 8h).';
 }
@@ -469,7 +491,8 @@ function ocChart(){
  const t1=Date.now(),t0=ocR==='all'?hist[0][0]:t1-(ocR==='1y'?1:4)*365*D,pw=W-PL-PR,ph=H-PT-PB;
  const S=[[hist,'#f7931a',1.6],[OC.rp,'#e6e8ea',1.2],[OC.sth,'#ff6b9d',1.4],[OC.lth,'#4aa3ff',1.4]].map(([a,col,w])=>[a.filter(p=>p[0]>=t0&&p[1]>0),col,w]);
  const all=S.flatMap(q=>q[0].map(p=>p[1]));if(!all.length)return;
- const a=Math.log10(Math.min(...all))-.04,b=Math.log10(Math.max(...all))+.04;
+ let mn=Infinity,mx=-Infinity;for(const v of all){if(v<mn)mn=v;if(v>mx)mx=v} /*avoid spreading ~24k args*/
+ const a=Math.log10(mn)-.04,b=Math.log10(mx)+.04;
  const X=t=>PL+(t-t0)/(t1-t0)*pw,Y=v=>PT+(1-(Math.log10(v)-a)/(b-a))*ph;
  const kept=[];for(const m of[1,2,5,3,1.5,7])for(let e=Math.floor(a)-1;e<=Math.ceil(b);e++){const v=m*Math.pow(10,e),lv=Math.log10(v);if(lv>a&&lv<b&&kept.every(k=>Math.abs(Y(k)-Y(v))>=17))kept.push(v)}
  x.font='10px monospace';x.lineWidth=1;
@@ -516,5 +539,9 @@ document.querySelectorAll('.xr').forEach(b=>b.onclick=()=>{const c=b.closest('.x
  c.querySelectorAll('.xr').forEach(q=>q.className='xr'+(q===b?' on':''));xDraw(k)});
 addEventListener('resize',()=>Object.keys(XS).forEach(xDraw));
 loadPrice();loadNet();histP=loadHist();loadNews();loadOC();
-setInterval(loadPrice,60000);setInterval(loadNet,120000);setInterval(loadNews,600000);setInterval(loadOC,108e5);
+/*#13 skip polling while the tab is hidden; catch up when it comes back*/
+const iv=f=>()=>{if(!document.hidden)f()};
+setInterval(iv(loadPrice),60000);setInterval(iv(loadNet),120000);setInterval(iv(loadNews),600000);setInterval(iv(loadOC),108e5);
+setInterval(iv(()=>{histP=loadHist()}),216e5); /*#1 refresh full history every 6h*/
+let hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.hidden)hidAt=Date.now();else if(Date.now()-hidAt>6e4){loadPrice();loadNet()}});
 </script></body></html>
